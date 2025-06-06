@@ -1,9 +1,12 @@
 import numpy as np
-from shape import Light
-from utils import EPSILON, normalize
+from shape import Light, Shape
+from utils import EPSILON, dot, normalize
+
 
 AMBIENT = 0.10
-color_light = np.ones(3)
+COLOR_LIGHT = np.ones(3)
+NX = 10
+NZ = int(NX * 44 / 58)
 
 
 class Scene:
@@ -12,7 +15,8 @@ class Scene:
         self.light_center = np.array((0, 105, 0))
         self.light_x = 58
         self.light_z = 44
-        self.light_samples = self.sample_area_light(nx=29, nz=22)
+        self.light_samples = self.sample_area_light(nx=NX, nz=NZ)
+        print(f"light samples: {NX}x{NZ}")
 
     def sample_area_light(self, nx, nz):
         samples = []
@@ -30,7 +34,9 @@ class Scene:
         else:
             self.shapes.append(shape)
 
-    def intersect(self, origin, direction):
+    def find_closest_intersection(
+        self, origin, direction
+    ) -> tuple[float, Shape | None]:
         closest_distance = float("inf")
         closest_shape = None
 
@@ -40,42 +46,39 @@ class Scene:
                 closest_distance = distance
                 closest_shape = shape
 
-        if closest_shape is None:
-            return
+        return closest_distance, closest_shape
 
-        intersection_point = origin + closest_distance * direction
-        normal = closest_shape.get_normal(intersection_point)
-        to_origin = normalize(origin - intersection_point)
-        color_ray = np.zeros(3)
+    def compute_color(self, point, normal, to_origin, shape):
+        if isinstance(shape, Light):
+            return COLOR_LIGHT
 
-        if isinstance(closest_shape, Light):
-            return intersection_point, normal, closest_shape.color
-
+        color = np.zeros(3)
         for light_pos in self.light_samples:
-            to_light = normalize(light_pos - intersection_point)
+            to_light = normalize(light_pos - point)
+            light_distance = np.linalg.norm(light_pos - point)
 
-            # shadow
-            shadow_distances = [
-                shape.intersect(intersection_point + to_light * EPSILON * 10, to_light)
+            # shadow check
+            distances = [
+                shape.intersect(point + to_light * EPSILON * 10, to_light)
                 for shape in self.shapes
-                if isinstance(shape, Light) is False
+                if not isinstance(shape, Light)
             ]
-            light_distance = np.linalg.norm(light_pos - intersection_point)
-            if shadow_distances and min(shadow_distances) < light_distance:
+            if min(distances) < light_distance:
                 continue
 
             # diffuse and specular contributions
-            color_ray += (
-                closest_shape.diffuse_c
-                * closest_shape.color
-                * max(np.dot(normal, to_light), 0)
-            )
-            color_ray += (
-                closest_shape.specular_c
-                * color_light
-                * max(np.dot(normal, to_origin), 0) ** closest_shape.specular_k
-            )
+            color += shape.DIFF_C * shape.color * dot(normal, to_light)
+            color += shape.SPEC_C * COLOR_LIGHT * dot(normal, to_origin) ** shape.SPEC_K
 
-        color_ray /= len(self.light_samples)
-        color_ray += AMBIENT * closest_shape.color
-        return intersection_point, normal, color_ray
+        color /= len(self.light_samples)
+        color += AMBIENT * shape.color
+        return color
+
+    def intersect(self, origin, direction):
+        distance, shape = self.find_closest_intersection(origin, direction)
+        if shape is None:
+            return
+        point = origin + distance * direction
+        normal = shape.get_normal(point)
+        color = self.compute_color(point, normal, normalize(origin - point), shape)
+        return point, normal, color

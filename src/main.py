@@ -34,10 +34,9 @@ def main():
 
     # img size parameters
     img_ratio = 2000 / 1380
-    img_height = 138
+    img_height = 138 // 2
     img_width = int(img_height * img_ratio)
     img = np.zeros((img_height, img_width, 3), dtype=np.float32)
-    print(f"img size: {img_height}x{img_width}")
 
     # camera parameters
     cam_position = np.array((0, 0, 347.5))
@@ -59,8 +58,8 @@ def main():
 
         depth = 0
         reflection = 1.0
-        MAX_DEPTH = 1
-        REFLECTION_RATIO = 0.5
+        MAX_DEPTH = 5
+        REFLECTION_RATIO = 0.1
         while depth < MAX_DEPTH:
             result = scene.intersect(ray_origin, ray_direction)
             if result is None:

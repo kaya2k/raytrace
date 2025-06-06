@@ -8,3 +8,7 @@ def normalize(v):
     if norm == 0:
         return v
     return v / norm
+
+
+def dot(a, b):
+    return max(np.dot(a, b), 0.0)

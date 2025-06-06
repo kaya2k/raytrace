@@ -4,6 +4,15 @@ from utils import EPSILON
 
 
 class Shape(ABC):
+    def __init__(self):
+        self.center = np.zeros(3)
+        self.feature = np.zeros(3)
+        self.color = np.zeros(3)
+
+        self.DIFF_C = 0.0
+        self.SPEC_C = 0.0
+        self.SPEC_K = 0.0
+
     @abstractmethod
     def intersect(self, origin, direction):
         raise NotImplementedError("Subclasses must implement intersect method")
@@ -19,9 +28,9 @@ class Cube(Shape):
         self.feature = np.array(feature)
         self.color = np.array(color)
 
-        self.diffuse_c = 0.8
-        self.specular_c = 0.2
-        self.specular_k = 32
+        self.DIFF_C = 0.8
+        self.SPEC_C = 0.2
+        self.SPEC_K = 32
 
         self.min_bound = self.center - self.feature / 2
         self.max_bound = self.center + self.feature / 2
