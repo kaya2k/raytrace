@@ -4,8 +4,9 @@ from utils import EPSILON, dot, normalize
 
 
 AMBIENT = 0.30
-NX = 30
+NX = 10
 NZ = int(NX * 44 / 58)
+SAMPLES_PER_CELL = 9
 
 
 class Scene:
@@ -58,9 +59,8 @@ class Scene:
 
     def compute_color(self, point, normal, to_origin, shape):
         color = np.zeros(3)
-        samples_per_cell = 4
         for light_sample in self.light_samples:
-            for _ in range(samples_per_cell):
+            for _ in range(SAMPLES_PER_CELL):
                 jitter_x = (np.random.rand() - 0.5) * (self.light_x / (NX + 1))
                 jitter_z = (np.random.rand() - 0.5) * (self.light_z / (NZ + 1))
                 light_pos = light_sample + np.array([jitter_x, 0, jitter_z])
@@ -83,6 +83,6 @@ class Scene:
                         * dot(normal, to_origin) ** shape.SPEC_K
                     )
 
-        color /= samples_per_cell * len(self.light_samples)
+        color /= SAMPLES_PER_CELL * len(self.light_samples)
         color += AMBIENT * shape.color
         return color
