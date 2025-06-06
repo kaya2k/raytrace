@@ -58,7 +58,7 @@ def main():
                 ray_direction -= 2 * np.dot(ray_direction, normal) * normal
                 ray_direction = normalize(ray_direction)
 
-        color /= SS_DIM
+        color /= SS_DIM * SS_DIM
         img[-j, i] = np.clip(color, 0, 1)
 
     plt.imsave(f"./img/{img_height}x{img_width}.png", img)
