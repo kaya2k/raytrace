@@ -5,6 +5,10 @@ from tqdm import tqdm
 from utils import EPSILON, normalize
 
 
+MAX_DEPTH = 1
+SUPERSAMPLING = 4
+
+
 def main():
     scene = create_scene()
 
@@ -12,6 +16,7 @@ def main():
     img_ratio = 2000 / 1380
     img_height = 1380 // 5
     img_width = int(img_height * img_ratio)
+    img_ratio = img_width / img_height
     img = np.zeros((img_height, img_width, 3), dtype=np.float32)
     print(f"image size: {img_height}x{img_width}")
 
@@ -27,29 +32,31 @@ def main():
     color = np.zeros(3, dtype=np.float32)
     for i, j in tqdm(np.ndindex(img_width, img_height), total=img_width * img_height):
         color[:] = 0
-        x, y = xs[i], ys[j]
-        cam_lookat[:2] = [x, y]
+        for _ in range(SUPERSAMPLING):
+            x = xs[i] + 4 * (np.random.rand() - 0.5) * (max_x / img_width)
+            y = ys[j] + 4 * (np.random.rand() - 0.5) * (max_y / img_height)
+            cam_lookat[:2] = [x, y]
 
-        ray_origin = cam_position
-        ray_direction = normalize(cam_lookat - cam_position)
+            ray_origin = cam_position
+            ray_direction = normalize(cam_lookat - cam_position)
 
-        depth = 0
-        reflection = 1.0
-        MAX_DEPTH = 1
-        while depth < MAX_DEPTH:
-            result = scene.intersect(ray_origin, ray_direction)
-            if result is None:
-                break
-            intersection_point, normal, color_ray, shape = result
-            color += reflection * color_ray
+            depth = 0
+            reflection = 1.0
+            while depth < MAX_DEPTH:
+                result = scene.intersect(ray_origin, ray_direction)
+                if result is None:
+                    break
+                intersection_point, normal, color_ray, shape = result
+                color += reflection * color_ray
 
-            # prepare next ray
-            depth += 1
-            reflection *= shape.reflection
-            ray_origin = intersection_point + normal * EPSILON * 10
-            ray_direction = ray_direction - 2 * np.dot(ray_direction, normal) * normal
-            ray_direction = normalize(ray_direction)
+                # prepare next ray
+                depth += 1
+                reflection *= shape.reflection
+                ray_origin = intersection_point + normal * EPSILON * 10
+                ray_direction -= 2 * np.dot(ray_direction, normal) * normal
+                ray_direction = normalize(ray_direction)
 
+        color /= SUPERSAMPLING
         img[-j, i] = np.clip(color, 0, 1)
 
     plt.imsave(f"./img/{img_height}x{img_width}.png", img)

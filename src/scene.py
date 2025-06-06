@@ -4,9 +4,9 @@ from utils import EPSILON, dot, normalize
 
 
 AMBIENT = 0.30
-NX = 10
+NX = 6
 NZ = int(NX * 44 / 58)
-SAMPLES_PER_CELL = 9
+SAMPLES_PER_CELL = 4
 
 
 class Scene:
