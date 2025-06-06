@@ -2,7 +2,7 @@ import numpy as np
 from shape import Light
 from utils import EPSILON, normalize
 
-AMBIENT = 0.20
+AMBIENT = 0.10
 color_light = np.ones(3)
 
 
@@ -56,7 +56,7 @@ class Scene:
 
             # shadow
             shadow_distances = [
-                shape.intersect(intersection_point + normal * EPSILON * 10, to_light)
+                shape.intersect(intersection_point + to_light * EPSILON * 10, to_light)
                 for shape in self.shapes
                 if isinstance(shape, Light) is False
             ]
