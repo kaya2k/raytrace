@@ -24,7 +24,7 @@ class Cube(Shape):
         return cube_get_normal(point, self.center, self.feature)
 
 
-@numba.njit(parallel=True, fastmath=True)
+@numba.njit(fastmath=True)
 def cube_intersect(origin, direction, min_bound, max_bound):
     inv_dir = 1.0 / np.where(direction != 0, direction, EPSILON)
     t_min = (min_bound - origin) * inv_dir
@@ -36,7 +36,7 @@ def cube_intersect(origin, direction, min_bound, max_bound):
     return t_near if t_near >= 0 else t_far
 
 
-@numba.njit(parallel=True, fastmath=True)
+@numba.njit(fastmath=True)
 def cube_get_normal(point, center, feature):
     diff = point - center
     half = feature / 2
