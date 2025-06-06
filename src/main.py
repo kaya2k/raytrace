@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from shape import Cube, Light
+from shape import Cube
 from scene import Scene
 from utils import EPSILON, normalize
 
@@ -24,10 +24,6 @@ def main():
     scene.add_shape([wall_B, wall_L, wall_R, wall_D])
     scene.add_shape([wall_U1, wall_U2, wall_U3, wall_U4])
 
-    # add light
-    light = Light(center=(0, 105.5, 0), feature=(58, 1, 44), color=COLOR_WHITE)
-    scene.add_shape(light)
-
     # add a test cube
     cube = Cube(center=(-50, -100 + 25, 0), feature=(50, 50, 50), color=COLOR_WHITE)
     scene.add_shape(cube)
@@ -37,6 +33,7 @@ def main():
     img_height = 138 // 2
     img_width = int(img_height * img_ratio)
     img = np.zeros((img_height, img_width, 3), dtype=np.float32)
+    print(f"image size: {img_width}x{img_height}")
 
     # camera parameters
     cam_position = np.array((0, 0, 347.5))
@@ -58,7 +55,7 @@ def main():
 
         depth = 0
         reflection = 1.0
-        MAX_DEPTH = 5
+        MAX_DEPTH = 1
         REFLECTION_RATIO = 0.1
         while depth < MAX_DEPTH:
             result = scene.intersect(ray_origin, ray_direction)

@@ -1,11 +1,10 @@
 import numpy as np
-from shape import Light, Shape
+from shape import Shape
 from utils import EPSILON, dot, normalize
 
 
 AMBIENT = 0.10
-COLOR_LIGHT = np.ones(3)
-NX = 10
+NX = 100
 NZ = int(NX * 44 / 58)
 
 
@@ -34,6 +33,15 @@ class Scene:
         else:
             self.shapes.append(shape)
 
+    def intersect(self, origin, direction):
+        distance, shape = self.find_closest_intersection(origin, direction)
+        if shape is None:
+            return
+        point = origin + distance * direction
+        normal = shape.get_normal(point)
+        color = self.compute_color(point, normal, normalize(origin - point), shape)
+        return point, normal, color
+
     def find_closest_intersection(
         self, origin, direction
     ) -> tuple[float, Shape | None]:
@@ -49,36 +57,24 @@ class Scene:
         return closest_distance, closest_shape
 
     def compute_color(self, point, normal, to_origin, shape):
-        if isinstance(shape, Light):
-            return COLOR_LIGHT
-
         color = np.zeros(3)
         for light_pos in self.light_samples:
             to_light = normalize(light_pos - point)
             light_distance = np.linalg.norm(light_pos - point)
+            in_shadow = False
 
-            # shadow check
-            distances = [
-                shape.intersect(point + to_light * EPSILON * 10, to_light)
-                for shape in self.shapes
-                if not isinstance(shape, Light)
-            ]
-            if min(distances) < light_distance:
-                continue
+            for s in self.shapes:
+                distance = s.intersect(point + to_light * EPSILON * 10, to_light)
+                if distance < light_distance:
+                    in_shadow = True
+                    break
 
-            # diffuse and specular contributions
-            color += shape.DIFF_C * shape.color * dot(normal, to_light)
-            color += shape.SPEC_C * COLOR_LIGHT * dot(normal, to_origin) ** shape.SPEC_K
+            if not in_shadow:
+                color += (
+                    shape.DIFF_C * shape.color * dot(normal, to_light)
+                    + shape.SPEC_C * np.ones(3) * dot(normal, to_origin) ** shape.SPEC_K
+                )
 
         color /= len(self.light_samples)
         color += AMBIENT * shape.color
         return color
-
-    def intersect(self, origin, direction):
-        distance, shape = self.find_closest_intersection(origin, direction)
-        if shape is None:
-            return
-        point = origin + distance * direction
-        normal = shape.get_normal(point)
-        color = self.compute_color(point, normal, normalize(origin - point), shape)
-        return point, normal, color
