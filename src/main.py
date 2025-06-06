@@ -33,8 +33,8 @@ def main():
     for i, j in tqdm(np.ndindex(img_width, img_height), total=img_width * img_height):
         color[:] = 0
         for _ in range(SUPERSAMPLING):
-            x = xs[i] + 4 * (np.random.rand() - 0.5) * (max_x / img_width)
-            y = ys[j] + 4 * (np.random.rand() - 0.5) * (max_y / img_height)
+            x = xs[i] + 2 * (np.random.rand() - 0.5) * (max_x / img_width)
+            y = ys[j] + 2 * (np.random.rand() - 0.5) * (max_y / img_height)
             cam_lookat[:2] = [x, y]
 
             ray_origin = cam_position
