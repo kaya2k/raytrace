@@ -1,26 +1,7 @@
 import numpy as np
 import numba
-from abc import ABC, abstractmethod
 from utils import EPSILON
-
-
-class Shape(ABC):
-    def __init__(self):
-        self.center = np.zeros(3)
-        self.feature = np.zeros(3)
-        self.color = np.zeros(3)
-
-        self.DIFF_C = 0.0
-        self.SPEC_C = 0.0
-        self.SPEC_K = 0.0
-
-    @abstractmethod
-    def intersect(self, origin, direction):
-        raise NotImplementedError("Subclasses must implement intersect method")
-
-    @abstractmethod
-    def get_normal(self, point):
-        raise NotImplementedError("Subclasses must implement get_normal method")
+from .shape import Shape
 
 
 class Cube(Shape):

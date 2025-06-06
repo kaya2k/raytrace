@@ -4,7 +4,7 @@ from utils import EPSILON, dot, normalize
 
 
 AMBIENT = 0.10
-NX = 100
+NX = 10
 NZ = int(NX * 44 / 58)
 
 

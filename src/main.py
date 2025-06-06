@@ -30,10 +30,10 @@ def main():
 
     # img size parameters
     img_ratio = 2000 / 1380
-    img_height = 138 // 2
+    img_height = 138
     img_width = int(img_height * img_ratio)
     img = np.zeros((img_height, img_width, 3), dtype=np.float32)
-    print(f"image size: {img_width}x{img_height}")
+    print(f"image size: {img_height}x{img_width}")
 
     # camera parameters
     cam_position = np.array((0, 0, 347.5))
