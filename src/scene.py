@@ -1,4 +1,5 @@
 import numpy as np
+from shape import Light
 from utils import EPSILON, normalize
 
 AMBIENT = 0.20
@@ -12,13 +13,14 @@ class Scene:
         self.light_x = 58
         self.light_z = 44
         self.light_samples = self.sample_area_light(nx=10, nz=8)
+        print(self.light_center)
+        print(self.light_samples)
 
     def sample_area_light(self, nx, nz):
         samples = []
-        xs = np.linspace(-self.light_x / 2, self.light_x / 2, nx)
-        zs = np.linspace(-self.light_z / 2, self.light_z / 2, nz)
-        for i, j in np.ndindex(len(xs), len(zs)):
-            x, z = xs[i], zs[j]
+        for i, j in np.ndindex(nx, nz):
+            x = -self.light_x / 2 + self.light_x / (nx + 1) * (i + 1)
+            z = -self.light_z / 2 + self.light_z / (nz + 1) * (j + 1)
             offset = np.array([x, 0, z])
             sample = self.light_center + offset
             samples.append(sample)
@@ -48,6 +50,9 @@ class Scene:
         to_origin = normalize(origin - intersection_point)
         color_ray = np.zeros(3)
 
+        if isinstance(closest_shape, Light):
+            return intersection_point, normal, closest_shape.color
+
         for light_pos in self.light_samples:
             to_light = normalize(light_pos - intersection_point)
 
@@ -55,6 +60,7 @@ class Scene:
             shadow_distances = [
                 shape.intersect(intersection_point + normal * EPSILON * 10, to_light)
                 for shape in self.shapes
+                if isinstance(shape, Light) is False
             ]
             light_distance = np.linalg.norm(light_pos - intersection_point)
             if shadow_distances and min(shadow_distances) < light_distance:

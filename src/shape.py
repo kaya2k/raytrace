@@ -5,12 +5,12 @@ from utils import EPSILON
 
 class Shape(ABC):
     @abstractmethod
-    def get_normal(self, point):
-        raise NotImplementedError("Subclasses must implement get_normal method")
-
-    @abstractmethod
     def intersect(self, origin, direction):
         raise NotImplementedError("Subclasses must implement intersect method")
+
+    @abstractmethod
+    def get_normal(self, point):
+        raise NotImplementedError("Subclasses must implement get_normal method")
 
 
 class Cube(Shape):
@@ -54,3 +54,8 @@ class Cube(Shape):
                 return normal
 
         raise ValueError("Point is not on the surface of the cube")
+
+
+class Light(Cube):
+    def __init__(self, center, feature, color):
+        super().__init__(center, feature, color)
