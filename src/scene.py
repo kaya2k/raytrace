@@ -40,7 +40,7 @@ class Scene:
         point = origin + distance * direction
         normal = shape.get_normal(point)
         color = self.compute_color(point, normal, normalize(origin - point), shape)
-        return point, normal, color
+        return point, normal, color, shape
 
     def find_closest_intersection(
         self, origin, direction

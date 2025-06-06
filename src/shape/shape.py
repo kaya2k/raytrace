@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 class Shape(ABC):
     def __init__(self):
         self.center = np.zeros(3)
-        self.feature = np.zeros(3)
         self.color = np.zeros(3)
+        self.reflection = 0.0
 
         self.DIFF_C = 0.0
         self.SPEC_C = 0.0
