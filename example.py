@@ -183,4 +183,4 @@ for i, x in enumerate(tqdm(np.linspace(S[0], S[2], w))):
             reflection *= obj.get("reflection", 1.0)
         img[h - j - 1, i, :] = np.clip(col, 0, 1)
 
-plt.imsave("fig.png", img)
+plt.imsave("./img/example.png", img)
