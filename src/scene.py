@@ -12,7 +12,7 @@ class Scene:
         self.light_center = np.array((0, 105, 0))
         self.light_x = 58
         self.light_z = 44
-        self.light_samples = self.sample_area_light(nx=10, nz=8)
+        self.light_samples = self.sample_area_light(nx=58, nz=44)
 
     def sample_area_light(self, nx, nz):
         samples = []
