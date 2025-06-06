@@ -6,7 +6,7 @@ from utils import EPSILON, normalize
 
 
 MAX_DEPTH = 1
-SUPERSAMPLING = 4
+SS_DIM = 2
 
 
 def main():
@@ -32,9 +32,11 @@ def main():
     color = np.zeros(3, dtype=np.float32)
     for i, j in tqdm(np.ndindex(img_width, img_height), total=img_width * img_height):
         color[:] = 0
-        for _ in range(SUPERSAMPLING):
-            x = xs[i] + 2 * (np.random.rand() - 0.5) * (max_x / img_width)
-            y = ys[j] + 2 * (np.random.rand() - 0.5) * (max_y / img_height)
+        for ss in range(SS_DIM * SS_DIM):
+            x_size = 2 * max_x / img_width
+            y_size = 2 * max_y / img_height
+            x = xs[i] + (((ss // SS_DIM) + 0.5) / SS_DIM - 0.5) * x_size
+            y = ys[j] + (((ss % SS_DIM) + 0.5) / SS_DIM - 0.5) * y_size
             cam_lookat[:2] = [x, y]
 
             ray_origin = cam_position
@@ -56,7 +58,7 @@ def main():
                 ray_direction -= 2 * np.dot(ray_direction, normal) * normal
                 ray_direction = normalize(ray_direction)
 
-        color /= SUPERSAMPLING
+        color /= SS_DIM
         img[-j, i] = np.clip(color, 0, 1)
 
     plt.imsave(f"./img/{img_height}x{img_width}.png", img)
