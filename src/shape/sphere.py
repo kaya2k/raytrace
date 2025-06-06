@@ -22,7 +22,7 @@ class Sphere(Shape):
         return sphere_get_normal(point, self.center)
 
 
-@numba.njit(fastmath=True)
+@numba.njit
 def sphere_intersect(origin, direction, center, radius):
     oc = origin - center
     b = direction[0] * oc[0] + direction[1] * oc[1] + direction[2] * oc[2]
@@ -45,7 +45,7 @@ def sphere_intersect(origin, direction, center, radius):
     return np.inf
 
 
-@numba.njit(fastmath=True)
+@numba.njit
 def sphere_get_normal(point, center):
     nx = point[0] - center[0]
     ny = point[1] - center[1]

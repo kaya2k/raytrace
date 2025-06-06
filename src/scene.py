@@ -3,8 +3,8 @@ from shape import Shape
 from utils import EPSILON, dot, normalize
 
 
-AMBIENT = 0.10
-NX = 100
+AMBIENT = 0.30
+NX = 30
 NZ = int(NX * 44 / 58)
 
 
@@ -58,23 +58,31 @@ class Scene:
 
     def compute_color(self, point, normal, to_origin, shape):
         color = np.zeros(3)
-        for light_pos in self.light_samples:
-            to_light = normalize(light_pos - point)
-            light_distance = np.linalg.norm(light_pos - point)
-            in_shadow = False
+        samples_per_cell = 4
+        for light_sample in self.light_samples:
+            for _ in range(samples_per_cell):
+                jitter_x = (np.random.rand() - 0.5) * (self.light_x / (NX + 1))
+                jitter_z = (np.random.rand() - 0.5) * (self.light_z / (NZ + 1))
+                light_pos = light_sample + np.array([jitter_x, 0, jitter_z])
 
-            for s in self.shapes:
-                distance = s.intersect(point + to_light * EPSILON * 10, to_light)
-                if distance < light_distance:
-                    in_shadow = True
-                    break
+                to_light = normalize(light_pos - point)
+                light_distance = np.linalg.norm(light_pos - point)
+                in_shadow = False
 
-            if not in_shadow:
-                color += (
-                    shape.DIFF_C * shape.color * dot(normal, to_light)
-                    + shape.SPEC_C * np.ones(3) * dot(normal, to_origin) ** shape.SPEC_K
-                )
+                for s in self.shapes:
+                    distance = s.intersect(point + to_light * EPSILON * 10, to_light)
+                    if distance < light_distance:
+                        in_shadow = True
+                        break
 
-        color /= len(self.light_samples)
+                if not in_shadow:
+                    color += (
+                        shape.DIFF_C * shape.color * dot(normal, to_light)
+                        + shape.SPEC_C
+                        * np.ones(3)
+                        * dot(normal, to_origin) ** shape.SPEC_K
+                    )
+
+        color /= samples_per_cell * len(self.light_samples)
         color += AMBIENT * shape.color
         return color
