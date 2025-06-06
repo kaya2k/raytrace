@@ -13,8 +13,6 @@ class Scene:
         self.light_x = 58
         self.light_z = 44
         self.light_samples = self.sample_area_light(nx=10, nz=8)
-        print(self.light_center)
-        print(self.light_samples)
 
     def sample_area_light(self, nx, nz):
         samples = []
