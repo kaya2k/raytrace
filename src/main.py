@@ -1,0 +1,76 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+from shape import Cube
+from scene import Scene
+from utils import EPSILON, normalize
+
+
+def main():
+    scene = Scene()
+
+    # add cornell box
+    COLOR_WHITE = (1, 1, 1)
+    COLOR_RED = (1, 0, 0)
+    COLOR_YELLOW = (1, 1, 0)
+    wall_B = Cube(center=(0, 0, -100), feature=(300, 200, 5), color=COLOR_WHITE)
+    wall_L = Cube(center=(-152.5, 0, 0), feature=(5, 200, 205), color=COLOR_YELLOW)
+    wall_R = Cube(center=(152.5, 0, 0), feature=(5, 200, 205), color=COLOR_RED)
+    wall_D = Cube(center=(0, -102.5, 0), feature=(310, 5, 205), color=COLOR_WHITE)
+    wall_U1 = Cube(center=(0, 102.5, 62.25), feature=(310, 5, 80.5), color=COLOR_WHITE)
+    wall_U2 = Cube(center=(0, 102.5, -62.25), feature=(310, 5, 80.5), color=COLOR_WHITE)
+    wall_U3 = Cube(center=(92, 102.5, 0), feature=(126, 5, 44), color=COLOR_WHITE)
+    wall_U4 = Cube(center=(-92, 102.5, 0), feature=(126, 5, 44), color=COLOR_WHITE)
+    scene.add_shape([wall_B, wall_L, wall_R, wall_D])
+    scene.add_shape([wall_U1, wall_U2, wall_U3, wall_U4])
+
+    # add a test cube
+    cube = Cube(center=(-50, -100 + 25, 0), feature=(50, 50, 50), color=COLOR_WHITE)
+    scene.add_shape(cube)
+
+    # img size parameters
+    img_ratio = 2000 / 1380
+    img_height = 138
+    img_width = int(img_height * img_ratio)
+    img = np.zeros((img_height, img_width, 3), dtype=np.float32)
+    print(f"img size: {img_height}x{img_width}")
+
+    # camera parameters
+    cam_position = np.array((0, 0, 347.5))
+    cam_lookat = np.array((0, 0, 0))
+    max_x = 210
+    max_y = max_x / img_ratio
+    xs = np.linspace(-max_x, max_x, img_width)
+    ys = np.linspace(-max_y, max_y, img_height)
+
+    # fill the image
+    color = np.zeros(3, dtype=np.float32)
+    for i, j in tqdm(np.ndindex(img_width, img_height), total=img_width * img_height):
+        color[:] = 0
+        x, y = xs[i], ys[j]
+        cam_lookat[:2] = [x, y]
+
+        ray_origin = cam_position
+        ray_direction = normalize(cam_lookat - cam_position)
+
+        depth = 0
+        reflection = 1.0
+        MAX_DEPTH = 1
+        REFLECTION_RATIO = 0.5
+        while depth < MAX_DEPTH:
+            result = scene.intersect(ray_origin, ray_direction)
+            if result is None:
+                break
+            intersection_point, normal, color_ray = result
+            color += reflection * color_ray
+
+            # prepare next ray
+            depth += 1
+            reflection *= REFLECTION_RATIO
+            ray_origin = intersection_point + normal * EPSILON * 10
+            ray_direction = ray_direction - 2 * np.dot(ray_direction, normal) * normal
+            ray_direction = normalize(ray_direction)
+
+        img[-j, i] = np.clip(color, 0, 1)
+
+    plt.imsave("./img/test.png", img)
