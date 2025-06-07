@@ -5,7 +5,7 @@ from .scene import intersect_shapes
 
 
 IMG_RATIO = 2000 / 1380
-IMG_WIDTH = 2000 // 10
+IMG_WIDTH = 2000 // 5
 IMG_HEIGHT = int(IMG_WIDTH / IMG_RATIO)
 IMG_RATIO = IMG_WIDTH / IMG_HEIGHT
 
