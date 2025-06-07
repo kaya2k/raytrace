@@ -1,7 +1,6 @@
 import math
 from numba import cuda
-
-EPSILON = 1e-6  # small constant to avoid division by zero and self-intersections
+from . import EPSILON
 
 
 @cuda.jit(device=True)

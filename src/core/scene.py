@@ -1,5 +1,6 @@
 import math
 from numba import cuda
+from . import EPSILON
 from .cube import intersect_cube_device, normal_cube_device
 from .sphere import intersect_sphere_device, normal_sphere_device
 from .utils import dot3, normalize3
@@ -18,7 +19,6 @@ AMBI   = 0.30  # ambient light coefficient
 DIFF_C = 0.80  # diffuse coefficient
 SPEC_C = 0.20  # specular coefficient
 SPEC_K = 32    # specular shininess factor (Phong exponent)
-EPSILON = 1e-6
 SHAPE_CUBE = 0
 SHAPE_SPHERE = 1
 
