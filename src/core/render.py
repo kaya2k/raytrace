@@ -36,12 +36,12 @@ def render(
 
     for i, j in np.ndindex(IMG_WIDTH, IMG_HEIGHT):
         if j == 0:
-            print(f"Rendering pixel ({i:4d}/{IMG_WIDTH:4d} x {IMG_HEIGHT:4d})")
+            print(f"Rendering pixel ({i}/{IMG_WIDTH} x {IMG_HEIGHT})")
 
-        color_sum = np.zeros(3, dtype=np.float32)
         x = i * CELL_SIZE_X - CAM_MAX_X
         y = j * CELL_SIZE_Y - CAM_MAX_Y
 
+        color_sum = np.zeros(3, dtype=np.float32)
         for k, l in np.ndindex(SS_DIM, SS_DIM):
             x += (k + 0.5) / SS_DIM * CELL_SIZE_X
             y += (l + 0.5) / SS_DIM * CELL_SIZE_Y
