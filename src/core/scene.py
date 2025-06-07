@@ -112,11 +112,11 @@ def compute_color(
             light_sample = np.array([x, LIGHT_Y, z])
 
             to_light = normalize(light_sample - point)
-            light_distance = np.linalg.norm(light_sample - point)
+            light_distance = np.float32(np.linalg.norm(light_sample - point))
             in_shadow = check_in_shadow(
                 point,
                 to_light,
-                float(light_distance),
+                light_distance,
                 cube_min_bounds,
                 cube_max_bounds,
                 sphere_centers,
@@ -137,7 +137,7 @@ def compute_color(
 def check_in_shadow(
     point: np.ndarray,
     to_light: np.ndarray,
-    light_distance: float,
+    light_distance: np.float32,
     cube_min_bounds: np.ndarray,
     cube_max_bounds: np.ndarray,
     sphere_centers: np.ndarray,
