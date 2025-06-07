@@ -27,9 +27,14 @@ def render_kernel(
     sphere_centers,
     sphere_radii,
     sphere_colors,
+    cylinder_centers,
+    cylinder_heights,
+    cylinder_radii,
+    cylinder_colors,
     states,
     n_cubes,
     n_spheres,
+    n_cylinders,
 ):
     # 2D thread indices for pixel coordinates
     i = cuda.threadIdx.x + cuda.blockIdx.x * cuda.blockDim.x  # image column (x index)
@@ -79,10 +84,15 @@ def render_kernel(
                     sphere_centers,
                     sphere_radii,
                     sphere_colors,
+                    cylinder_centers,
+                    cylinder_heights,
+                    cylinder_radii,
+                    cylinder_colors,
                     states,
                     j * img.shape[1] + i,  # unique RNG index
                     n_cubes,
                     n_spheres,
+                    n_cylinders,
                 )
                 float_r += r
                 float_g += g
@@ -120,6 +130,10 @@ def render(
     sphere_centers,
     sphere_radii,
     sphere_colors,
+    cylinder_centers,
+    cylinder_heights,
+    cylinder_radii,
+    cylinder_colors,
 ):
     # Allocate device memory and copy input data
     d_cube_centers = cuda.to_device(cube_centers)
@@ -130,6 +144,10 @@ def render(
     d_sphere_centers = cuda.to_device(sphere_centers)
     d_sphere_radii = cuda.to_device(sphere_radii)
     d_sphere_colors = cuda.to_device(sphere_colors)
+    d_cylinder_centers = cuda.to_device(cylinder_centers)
+    d_cylinder_heights = cuda.to_device(cylinder_heights)
+    d_cylinder_radii = cuda.to_device(cylinder_radii)
+    d_cylinder_colors = cuda.to_device(cylinder_colors)
     # Prepare output image array on device
     d_img = cuda.device_array((IMG_HEIGHT, IMG_WIDTH, 3), dtype=np.float32)
     # Initialize random states for each thread (for area light sampling)
@@ -152,9 +170,14 @@ def render(
         d_sphere_centers,
         d_sphere_radii,
         d_sphere_colors,
+        d_cylinder_centers,
+        d_cylinder_heights,
+        d_cylinder_radii,
+        d_cylinder_colors,
         states,
         cube_centers.shape[0],
         sphere_centers.shape[0],
+        cylinder_centers.shape[0],
     )
     # Wait for GPU to finish
     cuda.synchronize()

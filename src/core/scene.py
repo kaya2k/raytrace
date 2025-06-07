@@ -1,8 +1,9 @@
 import math
 from numba import cuda
-from . import EPSILON
+from . import EPSILON, SHAPE_CUBE, SHAPE_SPHERE, SHAPE_CYLINDER
 from .cube import intersect_cube_device, normal_cube_device
 from .sphere import intersect_sphere_device, normal_sphere_device
+from .cylinder import intersect_cylinder_device, normal_cylinder_device
 from .utils import dot3, normalize3
 
 # Constants for the area light and Phong illumination
@@ -19,8 +20,6 @@ AMBI = 0.30
 DIFF_C = 0.80
 SPEC_C = 0.20
 SPEC_K = 32
-SHAPE_CUBE = 0
-SHAPE_SPHERE = 1
 
 
 @cuda.jit(device=True)
@@ -36,8 +35,12 @@ def check_in_shadow_device(
     cube_max_bounds,
     sphere_centers,
     sphere_radii,
+    cylinder_centers,
+    cylinder_heights,
+    cylinder_radii,
     n_cubes,
     n_spheres,
+    n_cylinders,
 ) -> bool:
     # Offset the start point a bit along the light ray to avoid self-hit
     origin_x = point_x + to_light_x * (EPSILON * 10.0)
@@ -77,6 +80,23 @@ def check_in_shadow_device(
         )
         if d < light_distance:
             return True
+    # Check intersection with every cylinder
+    for i in range(n_cylinders):
+        d = intersect_cylinder_device(
+            origin_x,
+            origin_y,
+            origin_z,
+            to_light_x,
+            to_light_y,
+            to_light_z,
+            cylinder_centers[i, 0],
+            cylinder_centers[i, 1],
+            cylinder_centers[i, 2],
+            cylinder_heights[i],
+            cylinder_radii[i],
+        )
+        if d < light_distance:
+            return True
     return False  # no object obstructs the light
 
 
@@ -98,10 +118,15 @@ def compute_color_device(
     cube_max_bounds,
     sphere_centers,
     sphere_radii,
+    cylinder_centers,
+    cylinder_heights,
+    cylinder_radii,
+    cylinder_colors,
     states,
     idx,
     n_cubes,
     n_spheres,
+    n_cylinders,
 ):
     # Accumulate lighting contributions
     color_r = 0.0
@@ -152,8 +177,12 @@ def compute_color_device(
                     cube_max_bounds,
                     sphere_centers,
                     sphere_radii,
+                    cylinder_centers,
+                    cylinder_heights,
+                    cylinder_radii,
                     n_cubes,
                     n_spheres,
+                    n_cylinders,
                 ):
                     # Light is not blocked – add diffuse and specular contribution
                     # Diffuse component (Lambertian): shape_color * (N·L) * coefficient
@@ -210,10 +239,15 @@ def trace_ray_device(
     sphere_centers,
     sphere_radii,
     sphere_colors,
+    cylinder_centers,
+    cylinder_heights,
+    cylinder_radii,
+    cylinder_colors,
     states,
     idx,
     n_cubes,
     n_spheres,
+    n_cylinders,
 ):
     # Find the closest intersection of the ray with any object
     min_t = math.inf
@@ -257,6 +291,25 @@ def trace_ray_device(
             min_t = t
             min_idx = i
             min_shape = SHAPE_SPHERE
+    # Test all cylinders
+    for i in range(n_cylinders):
+        t = intersect_cylinder_device(
+            origin_x,
+            origin_y,
+            origin_z,
+            dir_x,
+            dir_y,
+            dir_z,
+            cylinder_centers[i, 0],
+            cylinder_centers[i, 1],
+            cylinder_centers[i, 2],
+            cylinder_heights[i],
+            cylinder_radii[i],
+        )
+        if t < min_t:
+            min_t = t
+            min_idx = i
+            min_shape = SHAPE_CYLINDER
     # If no object was hit, return background color (black)
     if min_shape == -1:
         return 0.0, 0.0, 0.0
@@ -281,7 +334,7 @@ def trace_ray_device(
         shape_col_r = cube_colors[min_idx, 0]
         shape_col_g = cube_colors[min_idx, 1]
         shape_col_b = cube_colors[min_idx, 2]
-    else:
+    elif min_shape == SHAPE_SPHERE:
         # Sphere hit
         norm_x, norm_y, norm_z = normal_sphere_device(
             hit_x,
@@ -294,6 +347,21 @@ def trace_ray_device(
         shape_col_r = sphere_colors[min_idx, 0]
         shape_col_g = sphere_colors[min_idx, 1]
         shape_col_b = sphere_colors[min_idx, 2]
+    else:
+        # Cylinder hit
+        norm_x, norm_y, norm_z = normal_cylinder_device(
+            hit_x,
+            hit_y,
+            hit_z,
+            cylinder_centers[min_idx, 0],
+            cylinder_centers[min_idx, 1],
+            cylinder_centers[min_idx, 2],
+            cylinder_heights[min_idx],
+            cylinder_radii[min_idx],
+        )
+        shape_col_r = cylinder_colors[min_idx, 0]
+        shape_col_g = cylinder_colors[min_idx, 1]
+        shape_col_b = cylinder_colors[min_idx, 2]
     # Compute vector from hit point back toward the camera (to_origin = -direction, since direction is normalized)
     to_orig_x = -dir_x
     to_orig_y = -dir_y
@@ -316,9 +384,14 @@ def trace_ray_device(
         cube_max_bounds,
         sphere_centers,
         sphere_radii,
+        cylinder_centers,
+        cylinder_heights,
+        cylinder_radii,
+        cylinder_colors,
         states,
         idx,
         n_cubes,
         n_spheres,
+        n_cylinders,
     )
     return color_r, color_g, color_b
