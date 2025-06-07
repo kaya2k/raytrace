@@ -39,6 +39,9 @@ def check_in_shadow_device(
     to_light_x,
     to_light_y,
     to_light_z,
+    norm_x,
+    norm_y,
+    norm_z,
     light_distance,
     cube_min_bounds,
     cube_max_bounds,
@@ -52,9 +55,9 @@ def check_in_shadow_device(
     n_cylinders,
 ) -> bool:
     # Offset the start point a bit along the light ray to avoid self-hit
-    origin_x = point_x + to_light_x * (EPSILON * 10.0)
-    origin_y = point_y + to_light_y * (EPSILON * 10.0)
-    origin_z = point_z + to_light_z * (EPSILON * 10.0)
+    origin_x = point_x + norm_x * (EPSILON * 10.0)
+    origin_y = point_y + norm_y * (EPSILON * 10.0)
+    origin_z = point_z + norm_z * (EPSILON * 10.0)
     # Check intersection with every cube
     for i in range(n_cubes):
         d = intersect_cube_device(
@@ -193,6 +196,9 @@ def compute_color_device(
                     to_light_x,
                     to_light_y,
                     to_light_z,
+                    norm_x,
+                    norm_y,
+                    norm_z,
                     light_distance,
                     cube_min_bounds,
                     cube_max_bounds,
