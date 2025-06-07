@@ -1,29 +1,15 @@
 import numpy as np
-import numba
-from utils import EPSILON
-from .shape import Shape
+from numba import njit
+from . import EPSILON
 
 
-class Sphere(Shape):
-    def __init__(self, center, radius, color):
-        self.center = np.array(center)
-        self.radius = radius
-        self.color = np.array(color)
-        self.reflection = 0.0
-
-        self.DIFF_C = 0.8
-        self.SPEC_C = 0.2
-        self.SPEC_K = 32
-
-    def intersect(self, origin, direction):
-        return sphere_intersect(origin, direction, self.center, self.radius)
-
-    def get_normal(self, point):
-        return sphere_get_normal(point, self.center)
-
-
-@numba.njit
-def sphere_intersect(origin, direction, center, radius):
+@njit(fastmath=True, inline="always")
+def intersect_sphere(
+    origin: np.ndarray,
+    direction: np.ndarray,
+    center: np.ndarray,
+    radius: float,
+) -> float:
     oc = origin - center
     b = direction[0] * oc[0] + direction[1] * oc[1] + direction[2] * oc[2]
     c = oc[0] * oc[0] + oc[1] * oc[1] + oc[2] * oc[2] - radius * radius
@@ -45,8 +31,11 @@ def sphere_intersect(origin, direction, center, radius):
     return np.inf
 
 
-@numba.njit
-def sphere_get_normal(point, center):
+@njit(fastmath=True, inline="always")
+def normal_sphere(
+    point: np.ndarray,
+    center: np.ndarray,
+) -> np.ndarray:
     nx = point[0] - center[0]
     ny = point[1] - center[1]
     nz = point[2] - center[2]

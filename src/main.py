@@ -1,64 +1,67 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from create_scene import create_scene
-from tqdm import tqdm
-from utils import EPSILON, normalize
+from matplotlib import pyplot as plt
+from core.render import render
 
 
-MAX_DEPTH = 1
-SS_DIM = 2
+cube_centers = []
+cube_sizes = []
+cube_colors = []
+cube_min_bounds = []
+cube_max_bounds = []
+sphere_centers = []
+sphere_radii = []
+sphere_colors = []
+
+
+def add_cube(center, size, color):
+    size = np.array(size)
+    center = np.array(center)
+    cube_centers.append(center)
+    cube_sizes.append(size)
+    cube_colors.append(color)
+    cube_min_bounds.append(center - size / 2)
+    cube_max_bounds.append(center + size / 2)
+
+
+def add_sphere(center, radius, color):
+    sphere_centers.append(np.array(center))
+    sphere_radii.append(radius)
+    sphere_colors.append(np.array(color))
+
+
+def create_scene():
+    COLOR_WHITE = (1, 1, 1)
+    COLOR_RED = (0.52, 0.14, 0.14)
+    COLOR_YELLOW = (0.80, 0.49, 0.15)
+    COLOR_SPHERE = (0.93, 0.94, 0.98)
+
+    # add cornell box
+    add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)
+    add_cube(center=(-152.5, 0, 0), size=(5, 200, 205), color=COLOR_YELLOW)
+    add_cube(center=(152.5, 0, 0), size=(5, 200, 205), color=COLOR_RED)
+    add_cube(center=(0, -102.5, 0), size=(310, 5, 205), color=COLOR_WHITE)
+    add_cube(center=(0, 102.5, 62.25), size=(310, 5, 80.5), color=COLOR_WHITE)
+    add_cube(center=(0, 102.5, -62.25), size=(310, 5, 80.5), color=COLOR_WHITE)
+    add_cube(center=(92, 102.5, 0), size=(126, 5, 44), color=COLOR_WHITE)
+    add_cube(center=(-92, 102.5, 0), size=(126, 5, 44), color=COLOR_WHITE)
+
+    # add tetrahedron
+    add_sphere(center=(0, -80, 20), radius=20, color=COLOR_SPHERE)
+    add_sphere(center=(27.18, -80.0, -9.34), radius=20, color=COLOR_SPHERE)
+    add_sphere(center=(-11.82, -80.0, -18.21), radius=20, color=COLOR_SPHERE)
+    add_sphere(center=(5.12, -47.34, -2.52), radius=20, color=COLOR_SPHERE)
 
 
 def main():
-    scene = create_scene()
-
-    # img size parameters
-    img_ratio = 2000 / 1380
-    img_height = 1380 // 20
-    img_width = int(img_height * img_ratio)
-    img_ratio = img_width / img_height
-    img = np.zeros((img_height, img_width, 3), dtype=np.float32)
-    print(f"image size: {img_height}x{img_width}")
-
-    # camera parameters
-    cam_position = np.array((0, 0, 347.5))
-    cam_lookat = np.array((0, 0, 0))
-    max_x = 210
-    max_y = max_x / img_ratio
-    xs = np.linspace(-max_x, max_x, img_width)
-    ys = np.linspace(-max_y, max_y, img_height)
-
-    # fill the image
-    color = np.zeros(3, dtype=np.float32)
-    for i, j in tqdm(np.ndindex(img_width, img_height), total=img_width * img_height):
-        color[:] = 0
-        for ss in range(SS_DIM * SS_DIM):
-            x_size = 2 * max_x / img_width
-            y_size = 2 * max_y / img_height
-            x = xs[i] + (((ss // SS_DIM) + 0.5) / SS_DIM - 0.5) * x_size
-            y = ys[j] + (((ss % SS_DIM) + 0.5) / SS_DIM - 0.5) * y_size
-            cam_lookat[:2] = [x, y]
-
-            ray_origin = cam_position
-            ray_direction = normalize(cam_lookat - cam_position)
-
-            depth = 0
-            reflection = 1.0
-            while depth < MAX_DEPTH:
-                result = scene.intersect(ray_origin, ray_direction)
-                if result is None:
-                    break
-                intersection_point, normal, color_ray, shape = result
-                color += reflection * color_ray
-
-                # prepare next ray
-                depth += 1
-                reflection *= shape.reflection
-                ray_origin = intersection_point + normal * EPSILON * 10
-                ray_direction -= 2 * np.dot(ray_direction, normal) * normal
-                ray_direction = normalize(ray_direction)
-
-        color /= SS_DIM * SS_DIM
-        img[-j, i] = np.clip(color, 0, 1)
-
-    plt.imsave(f"./img/{img_height}x{img_width}.png", img)
+    create_scene()
+    img = render(
+        np.array(cube_centers, dtype=np.float32),
+        np.array(cube_sizes, dtype=np.float32),
+        np.array(cube_colors, dtype=np.float32),
+        np.array(cube_min_bounds, dtype=np.float32),
+        np.array(cube_max_bounds, dtype=np.float32),
+        np.array(sphere_centers, dtype=np.float32),
+        np.array(sphere_radii, dtype=np.float32),
+        np.array(sphere_colors, dtype=np.float32),
+    )
+    plt.imsave("./img/fig.png", img)
