@@ -1,13 +1,16 @@
-import numpy as np
-from numba import njit
+import math
+from numba import cuda
 
 
-@njit(fastmath=True, inline="always")
-def dot(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+@cuda.jit(device=True)
+def dot3(ax, ay, az, bx, by, bz) -> float:
+    return ax * bx + ay * by + az * bz
 
 
-@njit(fastmath=True, inline="always")
-def normalize(v: np.ndarray) -> np.ndarray:
-    n = np.sqrt(dot(v, v))
-    return np.array((v[0] / n, v[1] / n, v[2] / n), dtype=np.float64)
+@cuda.jit(device=True)
+def normalize3(x, y, z):
+    length = math.sqrt(x * x + y * y + z * z)
+    if length <= 0.0:
+        return 0.0, 0.0, 0.0
+    inv = 1.0 / length
+    return x * inv, y * inv, z * inv

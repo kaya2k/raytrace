@@ -1,159 +1,203 @@
-import numpy as np
-from numba import njit
-from . import EPSILON, SHAPE_CUBE, SHAPE_SPHERE
-from .utils import dot, normalize
-from .cube import intersect_cube, normal_cube
-from .sphere import intersect_sphere, normal_sphere
+import math
+from numba import cuda
+from .cube import intersect_cube_device, normal_cube_device
+from .sphere import intersect_sphere_device, normal_sphere_device
+from .utils import dot3, normalize3
 
-
+# Constants for the area light and Phong illumination (same values as original Cornell box scene)
 LIGHT_SAMPLES_PER_CELL = 4
-LIGHT_Y = 105
-LIGHT_LEN_X = 58
-LIGHT_LEN_Z = 44
-LIGHT_NX = 10
-LIGHT_NZ = int(LIGHT_NX * LIGHT_LEN_Z / LIGHT_LEN_X)
+LIGHT_Y   = 105.0    # vertical position of the light source (ceiling height)
+LIGHT_LEN_X = 58.0   # light rectangle size (X dimension)
+LIGHT_LEN_Z = 44.0   # light rectangle size (Z dimension)
+LIGHT_NX = 10        # number of grid cells along X on the light area
+LIGHT_NZ = int(LIGHT_NX * LIGHT_LEN_Z / LIGHT_LEN_X)  # number of grid cells along Z (maintain aspect)
 CELL_SIZE_X = LIGHT_LEN_X / LIGHT_NX
 CELL_SIZE_Z = LIGHT_LEN_Z / LIGHT_NZ
 
-AMBI = 0.30
-DIFF_C = 0.8
-SPEC_C = 0.2
-SPEC_K = 32
+AMBI   = 0.30  # ambient light coefficient
+DIFF_C = 0.80  # diffuse coefficient
+SPEC_C = 0.20  # specular coefficient
+SPEC_K = 32    # specular shininess factor (Phong exponent)
+EPSILON = 1e-6
+SHAPE_CUBE = 0
+SHAPE_SPHERE = 1
 
-
-@njit(fastmath=True)
-def intersect_shapes(
-    origin: np.ndarray,
-    direction: np.ndarray,
-    cube_centers: np.ndarray,
-    cube_sizes: np.ndarray,
-    cube_colors: np.ndarray,
-    cube_min_bounds: np.ndarray,
-    cube_max_bounds: np.ndarray,
-    sphere_centers: np.ndarray,
-    sphere_radii: np.ndarray,
-    sphere_colors: np.ndarray,
-) -> tuple:
-    min_t = np.inf
-    min_shape = -1
-    min_i = -1
-
-    # CHECK CUBES
-    n_cubes = cube_centers.shape[0]
+@cuda.jit(device=True)
+def check_in_shadow_device(point_x, point_y, point_z,
+                           to_light_x, to_light_y, to_light_z,
+                           light_distance,
+                           cube_min_bounds, cube_max_bounds,
+                           sphere_centers, sphere_radii,
+                           n_cubes, n_spheres) -> bool:
+    # Offset the start point a bit along the light ray to avoid self-hit
+    origin_x = point_x + to_light_x * (EPSILON * 10.0)
+    origin_y = point_y + to_light_y * (EPSILON * 10.0)
+    origin_z = point_z + to_light_z * (EPSILON * 10.0)
+    # Check intersection with every cube
     for i in range(n_cubes):
-        t = intersect_cube(origin, direction, cube_min_bounds[i], cube_max_bounds[i])
+        d = intersect_cube_device(origin_x, origin_y, origin_z,
+                                  to_light_x, to_light_y, to_light_z,
+                                  cube_min_bounds[i, 0], cube_min_bounds[i, 1], cube_min_bounds[i, 2],
+                                  cube_max_bounds[i, 0], cube_max_bounds[i, 1], cube_max_bounds[i, 2])
+        if d < light_distance:
+            return True  # something blocks the light before it reaches the point
+    # Check intersection with every sphere
+    for i in range(n_spheres):
+        d = intersect_sphere_device(origin_x, origin_y, origin_z,
+                                    to_light_x, to_light_y, to_light_z,
+                                    sphere_centers[i, 0], sphere_centers[i, 1], sphere_centers[i, 2],
+                                    sphere_radii[i])
+        if d < light_distance:
+            return True
+    return False  # no object obstructs the light
+
+@cuda.jit(device=True)
+def compute_color_device(to_orig_x, to_orig_y, to_orig_z,
+                         point_x, point_y, point_z,
+                         norm_x, norm_y, norm_z,
+                         shape_col_r, shape_col_g, shape_col_b,
+                         cube_min_bounds, cube_max_bounds,
+                         sphere_centers, sphere_radii,
+                         states, idx, n_cubes, n_spheres):
+    # Accumulate lighting contributions
+    color_r = 0.0
+    color_g = 0.0
+    color_b = 0.0
+    # For each cell of the area light
+    for i in range(LIGHT_NX):
+        # Compute the X coordinate range of this cell on the light
+        x_min = i * CELL_SIZE_X - 0.5 * LIGHT_LEN_X
+        for j in range(LIGHT_NZ):
+            # Z coordinate range of this cell
+            z_min = j * CELL_SIZE_Z - 0.5 * LIGHT_LEN_Z
+            # Take multiple random samples within each cell
+            for _ in range(LIGHT_SAMPLES_PER_CELL):
+                # Random offsets (u,v) in [0,1) for this cell
+                u = cuda.random.xoroshiro128p_uniform_float32(states, idx)
+                v = cuda.random.xoroshiro128p_uniform_float32(states, idx)
+                # Sample point on the light area (rectangle centered at origin in X-Z plane at Y = LIGHT_Y)
+                sample_x = x_min + u * CELL_SIZE_X
+                sample_z = z_min + v * CELL_SIZE_Z
+                # Vector from hit point to the light sample
+                to_light_x = sample_x - point_x
+                to_light_y = LIGHT_Y  - point_y
+                to_light_z = sample_z - point_z
+                # Distance to the light sample
+                dist = math.sqrt(to_light_x*to_light_x + to_light_y*to_light_y + to_light_z*to_light_z)
+                if dist <= 0.0:
+                    continue  # point is at the light (degenerate case)
+                # Normalize the to_light direction
+                to_light_x /= dist
+                to_light_y /= dist
+                to_light_z /= dist
+                light_distance = dist  # distance to light
+                # Shadow check: is the light visible from the point?
+                if not check_in_shadow_device(point_x, point_y, point_z,
+                                              to_light_x, to_light_y, to_light_z,
+                                              light_distance,
+                                              cube_min_bounds, cube_max_bounds,
+                                              sphere_centers, sphere_radii,
+                                              n_cubes, n_spheres):
+                    # Light is not blocked – add diffuse and specular contribution
+                    # Diffuse component (Lambertian): shape_color * (N·L) * coefficient
+                    # dot(N,L):
+                    diffuse_factor = dot3(norm_x, norm_y, norm_z, to_light_x, to_light_y, to_light_z)
+                    if diffuse_factor < 0.0:
+                        diffuse_factor = 0.0  # no negative light contribution
+                    color_r += DIFF_C * shape_col_r * diffuse_factor
+                    color_g += DIFF_C * shape_col_g * diffuse_factor
+                    color_b += DIFF_C * shape_col_b * diffuse_factor
+                    # Specular component (Blinn-Phong):
+                    # Half vector = normalized (to_light + to_origin)
+                    half_x = to_light_x + to_orig_x
+                    half_y = to_light_y + to_orig_y
+                    half_z = to_light_z + to_orig_z
+                    half_x, half_y, half_z = normalize3(half_x, half_y, half_z)
+                    # dot(N, H):
+                    let = dot3(norm_x, norm_y, norm_z, half_x, half_y, half_z)
+                    # We raise max(N·H, 0) to the power SPEC_K. If N·H is negative, we treat it as 0 (no specular).
+                    if let < 0.0:
+                        let = 0.0
+                    # Specular intensity (same for R,G,B, so we use white specular color)
+                    spec = SPEC_C * (let ** SPEC_K)
+                    color_r += spec
+                    color_g += spec
+                    color_b += spec
+    # Average the accumulated light contributions over all samples
+    total_samples = LIGHT_SAMPLES_PER_CELL * LIGHT_NX * LIGHT_NZ
+    color_r /= total_samples
+    color_g /= total_samples
+    color_b /= total_samples
+    # Add ambient term (ambient light uniformly adds a base color)
+    color_r += AMBI * shape_col_r
+    color_g += AMBI * shape_col_g
+    color_b += AMBI * shape_col_b
+    return color_r, color_g, color_b
+
+@cuda.jit(device=True)
+def trace_ray_device(origin_x, origin_y, origin_z,
+                     dir_x, dir_y, dir_z,
+                     cube_centers, cube_sizes, cube_colors,
+                     cube_min_bounds, cube_max_bounds,
+                     sphere_centers, sphere_radii, sphere_colors,
+                     states, idx, n_cubes, n_spheres):
+    # Find the closest intersection of the ray with any object
+    min_t = math.inf
+    min_shape = -1  # -1 means no hit
+    min_idx = -1
+    # Test all cubes
+    for i in range(n_cubes):
+        t = intersect_cube_device(origin_x, origin_y, origin_z,
+                                  dir_x, dir_y, dir_z,
+                                  cube_min_bounds[i, 0], cube_min_bounds[i, 1], cube_min_bounds[i, 2],
+                                  cube_max_bounds[i, 0], cube_max_bounds[i, 1], cube_max_bounds[i, 2])
         if t < min_t:
             min_t = t
-            min_i = i
+            min_idx = i
             min_shape = SHAPE_CUBE
-
-    # CHECK SPHERES
-    n_spheres = sphere_centers.shape[0]
+    # Test all spheres
     for i in range(n_spheres):
-        t = intersect_sphere(origin, direction, sphere_centers[i], sphere_radii[i])
+        t = intersect_sphere_device(origin_x, origin_y, origin_z,
+                                    dir_x, dir_y, dir_z,
+                                    sphere_centers[i, 0], sphere_centers[i, 1], sphere_centers[i, 2],
+                                    sphere_radii[i])
         if t < min_t:
             min_t = t
-            min_i = i
+            min_idx = i
             min_shape = SHAPE_SPHERE
-
-    # NO INTERSECTION
+    # If no object was hit, return background color (black)
     if min_shape == -1:
-        return (
-            np.array((0.0, 0.0, 0.0)),
-            np.array((0.0, 0.0, 0.0)),
-            np.array((0.0, 0.0, 0.0)),
-            -1,
-            -1,
-        )
-
-    point = origin + direction * min_t
+        return 0.0, 0.0, 0.0
+    # Compute the exact hit point on the surface
+    hit_x = origin_x + min_t * dir_x
+    hit_y = origin_y + min_t * dir_y
+    hit_z = origin_z + min_t * dir_z
+    # Get surface normal and object color at the hit point
     if min_shape == SHAPE_CUBE:
-        normal = normal_cube(point, cube_centers[min_i], cube_sizes[min_i])
-        shape_color = cube_colors[min_i]
-    elif min_shape == SHAPE_SPHERE:
-        normal = normal_sphere(point, sphere_centers[min_i])
-        shape_color = sphere_colors[min_i]
+        # Cube hit
+        norm_x, norm_y, norm_z = normal_cube_device(hit_x, hit_y, hit_z,
+                                                   cube_centers[min_idx, 0], cube_centers[min_idx, 1], cube_centers[min_idx, 2],
+                                                   cube_sizes[min_idx, 0], cube_sizes[min_idx, 1], cube_sizes[min_idx, 2])
+        shape_col_r = cube_colors[min_idx, 0]
+        shape_col_g = cube_colors[min_idx, 1]
+        shape_col_b = cube_colors[min_idx, 2]
     else:
-        assert False
-
-    color = compute_color(
-        normalize(origin - point),
-        point,
-        normal,
-        shape_color,
-        cube_min_bounds,
-        cube_max_bounds,
-        sphere_centers,
-        sphere_radii,
-    )
-    return point, normal, color, min_shape, min_i
-
-
-@njit(fastmath=True)
-def compute_color(
-    to_origin: np.ndarray,
-    point: np.ndarray,
-    normal: np.ndarray,
-    shape_color: np.ndarray,
-    cube_min_bounds: np.ndarray,
-    cube_max_bounds: np.ndarray,
-    sphere_centers: np.ndarray,
-    sphere_radii: np.ndarray,
-) -> np.ndarray:
-    color = np.zeros(3)
-
-    for i, j in np.ndindex(LIGHT_NX, LIGHT_NZ):
-        x_min = i * CELL_SIZE_X - LIGHT_LEN_X / 2
-        z_min = j * CELL_SIZE_Z - LIGHT_LEN_Z / 2
-
-        for _ in range(LIGHT_SAMPLES_PER_CELL):
-            x = x_min + np.random.rand() * CELL_SIZE_X
-            z = z_min + np.random.rand() * CELL_SIZE_Z
-            light_sample = np.array([x, LIGHT_Y, z])
-
-            to_light = normalize(light_sample - point)
-            light_distance = np.float32(np.linalg.norm(light_sample - point))
-            in_shadow = check_in_shadow(
-                point,
-                to_light,
-                light_distance,
-                cube_min_bounds,
-                cube_max_bounds,
-                sphere_centers,
-                sphere_radii,
-            )
-            if not in_shadow:
-                diffuse = DIFF_C * shape_color * dot(normal, to_light)
-                half = normalize(to_light + to_origin)
-                specular = SPEC_C * np.ones(3) * dot(normal, half) ** SPEC_K
-                color += diffuse + specular
-
-    color /= LIGHT_SAMPLES_PER_CELL * LIGHT_NX * LIGHT_NZ
-    color += AMBI * shape_color
-    return color
-
-
-@njit(fastmath=True)
-def check_in_shadow(
-    point: np.ndarray,
-    to_light: np.ndarray,
-    light_distance: np.float32,
-    cube_min_bounds: np.ndarray,
-    cube_max_bounds: np.ndarray,
-    sphere_centers: np.ndarray,
-    sphere_radii: np.ndarray,
-) -> bool:
-    origin = point + to_light * EPSILON * 10
-    n_cubes = cube_min_bounds.shape[0]
-    for i in range(n_cubes):
-        d = intersect_cube(origin, to_light, cube_min_bounds[i], cube_max_bounds[i])
-        if d < light_distance:
-            return True
-
-    n_spheres = sphere_centers.shape[0]
-    for i in range(n_spheres):
-        d = intersect_sphere(origin, to_light, sphere_centers[i], sphere_radii[i])
-        if d < light_distance:
-            return True
-
-    return False
+        # Sphere hit
+        norm_x, norm_y, norm_z = normal_sphere_device(hit_x, hit_y, hit_z,
+                                                     sphere_centers[min_idx, 0], sphere_centers[min_idx, 1], sphere_centers[min_idx, 2])
+        shape_col_r = sphere_colors[min_idx, 0]
+        shape_col_g = sphere_colors[min_idx, 1]
+        shape_col_b = sphere_colors[min_idx, 2]
+    # Compute vector from hit point back toward the camera (to_origin = -direction, since direction is normalized)
+    to_orig_x = -dir_x
+    to_orig_y = -dir_y
+    to_orig_z = -dir_z
+    # Compute lighting at the hit point using Phong illumination model
+    color_r, color_g, color_b = compute_color_device(to_orig_x, to_orig_y, to_orig_z,
+                                                    hit_x, hit_y, hit_z,
+                                                    norm_x, norm_y, norm_z,
+                                                    shape_col_r, shape_col_g, shape_col_b,
+                                                    cube_min_bounds, cube_max_bounds,
+                                                    sphere_centers, sphere_radii,
+                                                    states, idx, n_cubes, n_spheres)
+    return color_r, color_g, color_b
