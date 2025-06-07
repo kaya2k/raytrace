@@ -62,7 +62,7 @@ def create_scene():
     # add_sphere(center=(27.18, -80.0, -9.34), radius=20, color=COLOR_SPHERE)
     # add_sphere(center=(-11.82, -80.0, -18.21), radius=20, color=COLOR_SPHERE)
     # add_sphere(center=(5.12, -47.34, -2.52), radius=20, color=COLOR_SPHERE)
-    add_sphere(center=(0, -80.0, -18.21), radius=20, color=COLOR_SPHERE)
+    add_sphere(center=(-11.82, -80.0, 0.0), radius=20, color=COLOR_SPHERE)
     # Cylinder
     # add_cylinder(center=(82, -92.5, -12), height=15, radius=24, color=COLOR_CYLINDER)
     add_cylinder(center=(82, -92.5, -10), height=17, radius=24, color=COLOR_CYLINDER)
