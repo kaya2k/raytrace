@@ -1,7 +1,0 @@
-import sys
-
-sys.path.append("./src")
-
-from main import main
-
-main()

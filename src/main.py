@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import time
 from matplotlib import pyplot as plt
@@ -53,7 +54,12 @@ def create_scene():
     add_sphere(center=(5.12, -47.34, -2.52), radius=20, color=COLOR_SPHERE)
 
 
-def main():
+if __name__ == "__main__":
+    IMG_PATH = "./img/fig.png"
+    if os.path.exists(IMG_PATH):
+        print("Rename existing image to avoid overwriting.")
+        exit(0)
+
     create_scene()
     start_time = time.time()
     img = render(
@@ -68,5 +74,5 @@ def main():
     )
     end_time = time.time()
     print(f"Rendering took {end_time - start_time:.2f} seconds")
-    plt.imsave("./img/fig.png", img)
-    print("Image saved to ./img/fig.png")
+    plt.imsave(IMG_PATH, img)
+    print(f"Image saved to {IMG_PATH}")
