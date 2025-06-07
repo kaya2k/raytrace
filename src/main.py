@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from matplotlib import pyplot as plt
 from core.render import render
 
@@ -54,6 +55,7 @@ def create_scene():
 
 def main():
     create_scene()
+    start_time = time.time()
     img = render(
         np.array(cube_centers, dtype=np.float32),
         np.array(cube_sizes, dtype=np.float32),
@@ -64,4 +66,7 @@ def main():
         np.array(sphere_radii, dtype=np.float32),
         np.array(sphere_colors, dtype=np.float32),
     )
+    end_time = time.time()
+    print(f"Rendering took {end_time - start_time:.2f} seconds")
     plt.imsave("./img/fig.png", img)
+    print("Image saved to ./img/fig.png")
