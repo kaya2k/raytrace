@@ -35,7 +35,7 @@ def create_scene():
     COLOR_WHITE = (1, 1, 1)
     COLOR_RED = (0.52, 0.14, 0.14)
     COLOR_YELLOW = (0.80, 0.49, 0.15)
-    COLOR_SPHERE = (0.93, 0.94, 0.98)
+    COLOR_SPHERE = COLOR_WHITE
 
     # add cornell box
     add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)

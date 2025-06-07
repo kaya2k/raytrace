@@ -123,10 +123,10 @@ def compute_color(
                 sphere_radii,
             )
             if not in_shadow:
-                color += (
-                    DIFF_C * shape_color * dot(normal, to_light)
-                    + SPEC_C * np.ones(3) * dot(normal, to_origin) ** SPEC_K
-                )
+                diffuse = DIFF_C * shape_color * dot(normal, to_light)
+                half = normalize(to_light + to_origin)
+                specular = SPEC_C * np.ones(3) * dot(normal, half) ** SPEC_K
+                color += diffuse + specular
 
     color /= LIGHT_SAMPLES_PER_CELL * LIGHT_NX * LIGHT_NZ
     color += AMBI * shape_color
