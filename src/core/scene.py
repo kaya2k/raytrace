@@ -310,9 +310,9 @@ def trace_ray_device(
             min_t = t
             min_idx = i
             min_shape = SHAPE_CYLINDER
-    # If no object was hit, return background color (black)
+    # If no object was hit, return light color (white)
     if min_shape == -1:
-        return 0.0, 0.0, 0.0
+        return 1.0, 1.0, 1.0
     # Compute the exact hit point on the surface
     hit_x = origin_x + min_t * dir_x
     hit_y = origin_y + min_t * dir_y
