@@ -10,7 +10,7 @@ LIGHT_SAMPLES_PER_CELL = 4
 LIGHT_Y = 105
 LIGHT_LEN_X = 58
 LIGHT_LEN_Z = 44
-LIGHT_NX = 6
+LIGHT_NX = 10
 LIGHT_NZ = int(LIGHT_NX * LIGHT_LEN_Z / LIGHT_LEN_X)
 CELL_SIZE_X = LIGHT_LEN_X / LIGHT_NX
 CELL_SIZE_Z = LIGHT_LEN_Z / LIGHT_NZ
@@ -102,9 +102,9 @@ def compute_color(
 ) -> np.ndarray:
     color = np.zeros(3)
 
-    for idx in range(LIGHT_NX * LIGHT_NZ):
-        x_min = (idx // LIGHT_NZ) * CELL_SIZE_X
-        z_min = (idx % LIGHT_NZ) * CELL_SIZE_Z
+    for i, j in np.ndindex(LIGHT_NX, LIGHT_NZ):
+        x_min = i * CELL_SIZE_X - LIGHT_LEN_X / 2
+        z_min = j * CELL_SIZE_Z - LIGHT_LEN_Z / 2
 
         for _ in range(LIGHT_SAMPLES_PER_CELL):
             x = x_min + np.random.rand() * CELL_SIZE_X

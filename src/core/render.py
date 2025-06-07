@@ -6,7 +6,7 @@ from .scene import intersect_shapes
 
 
 IMG_RATIO = 2000 / 1380
-IMG_WIDTH = 2000 // 4
+IMG_WIDTH = 2000 // 5
 IMG_HEIGHT = int(IMG_WIDTH / IMG_RATIO)
 IMG_RATIO = IMG_WIDTH / IMG_HEIGHT
 
@@ -17,7 +17,7 @@ CAM_MAX_Y = CAM_MAX_X / IMG_RATIO
 CELL_SIZE_X = CAM_MAX_X * 2 / IMG_WIDTH
 CELL_SIZE_Y = CAM_MAX_Y * 2 / IMG_HEIGHT
 
-SS_DIM = 2
+SS_DIM = 1
 
 
 @njit(fastmath=True, parallel=True)
