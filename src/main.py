@@ -48,7 +48,7 @@ def create_scene():
     COLOR_SPHERE = COLOR_WHITE
     COLOR_CYLINDER = (0.95, 0.95, 0.90)
     # Cornell box walls (6 walls) and ceiling panels
-    # add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)  # back wall
+    add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)  # back wall
     # add_cube(center=(-152.5, 0, 0), size=(5, 200, 205), color=COLOR_YELLOW)  # left wall
     # add_cube(center=(152.5, 0, 0), size=(5, 200, 205), color=COLOR_RED)  # right wall
     # add_cube(center=(0, -102.5, 0), size=(310, 5, 205), color=COLOR_WHITE)  # floor
@@ -65,7 +65,7 @@ def create_scene():
     # TEST
     add_sphere(center=(-11.82, -80.0, -10.0), radius=20, color=COLOR_SPHERE)
     # Cylinder
-    # add_cylinder(center=(82, -92.5, -10), height=17, radius=24, color=COLOR_CYLINDER)
+    add_cylinder(center=(82, -92.5, -10), height=17, radius=24, color=COLOR_CYLINDER)
 
 
 if __name__ == "__main__":
