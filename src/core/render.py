@@ -1,6 +1,5 @@
 import numpy as np
 from numba import njit
-from tqdm import tqdm
 from .utils import normalize
 from .scene import intersect_shapes
 
@@ -17,7 +16,7 @@ CAM_MAX_Y = CAM_MAX_X / IMG_RATIO
 CELL_SIZE_X = CAM_MAX_X * 2 / IMG_WIDTH
 CELL_SIZE_Y = CAM_MAX_Y * 2 / IMG_HEIGHT
 
-SS_DIM = 1
+SS_DIM = 4
 
 
 @njit(fastmath=True, parallel=True)
