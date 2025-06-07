@@ -46,7 +46,7 @@ def create_scene():
     COLOR_RED = (0.52, 0.14, 0.14)
     COLOR_YELLOW = (0.80, 0.49, 0.15)
     COLOR_SPHERE = COLOR_WHITE
-    COLOR_CYLINDER = (0.95, 0.95, 0.86)
+    COLOR_CYLINDER = (0.95, 0.95, 0.90)
     # Cornell box walls (6 walls) and ceiling panels
     add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)  # back wall
     add_cube(center=(-152.5, 0, 0), size=(5, 200, 205), color=COLOR_YELLOW)  # left wall
