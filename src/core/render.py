@@ -33,12 +33,12 @@ def render(
 ) -> np.ndarray:
     img = np.zeros((IMG_HEIGHT, IMG_WIDTH, 3), dtype=np.float32)
     cam_lookat = np.array((0.0, 0.0, 0.0))
-    color_sum = np.zeros(3, dtype=np.float32)
 
     for i, j in np.ndindex(IMG_WIDTH, IMG_HEIGHT):
         if j == 0:
             print(f"Rendering pixel ({i}/{IMG_WIDTH}, {j}/{IMG_HEIGHT})")
 
+        color_sum = np.zeros(3, dtype=np.float32)
         x = i * CELL_SIZE_X - CAM_MAX_X
         y = j * CELL_SIZE_Y - CAM_MAX_Y
 
