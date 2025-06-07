@@ -6,7 +6,7 @@ from .scene import trace_ray_device
 
 # Image and camera parameters (same as original)
 IMG_RATIO  = 2000 / 1380
-IMG_WIDTH  = 2000 // 5
+IMG_WIDTH  = 2000
 IMG_HEIGHT = int(IMG_WIDTH / IMG_RATIO)
 IMG_RATIO  = IMG_WIDTH / IMG_HEIGHT
 CAM_POSITION = np.array((0.0, 0.0, 347.5), dtype=np.float32)
