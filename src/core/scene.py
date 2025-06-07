@@ -1,9 +1,19 @@
 import math
 from numba import cuda
-from . import EPSILON, SHAPE_CUBE, SHAPE_SPHERE, SHAPE_CYLINDER
+from . import (
+    EGG_B,
+    EGG_G,
+    EGG_R,
+    EPSILON,
+    SHAPE_CUBE,
+    SHAPE_SPHERE,
+    SHAPE_CYLINDER,
+    SHAPE_EGG,
+)
 from .cube import intersect_cube_device, normal_cube_device
 from .sphere import intersect_sphere_device, normal_sphere_device
 from .cylinder import intersect_cylinder_device, normal_cylinder_device
+from .egg import intersect_egg_implicit, normal_egg_implicit
 from .utils import dot3, normalize3
 
 LIGHT_SAMPLES_PER_CELL = 4
@@ -96,6 +106,18 @@ def check_in_shadow_device(
         )
         if d < light_distance:
             return True
+    # Check intersection with the egg shape
+    d = intersect_egg_implicit(
+        origin_x,
+        origin_y,
+        origin_z,
+        to_light_x,
+        to_light_y,
+        to_light_z,
+    )
+    if d < light_distance:
+        return True
+
     return False  # no object obstructs the light
 
 
@@ -309,6 +331,19 @@ def trace_ray_device(
             min_t = t
             min_idx = i
             min_shape = SHAPE_CYLINDER
+    # Test the egg shape
+    t = intersect_egg_implicit(
+        origin_x,
+        origin_y,
+        origin_z,
+        dir_x,
+        dir_y,
+        dir_z,
+    )
+    if t < min_t:
+        min_t = t
+        min_idx = 0
+        min_shape = SHAPE_EGG
     # If no object was hit, return light color (white)
     if min_shape == -1:
         return 1.0, 1.0, 1.0
@@ -318,7 +353,6 @@ def trace_ray_device(
     hit_z = origin_z + min_t * dir_z
     # Get surface normal and object color at the hit point
     if min_shape == SHAPE_CUBE:
-        # Cube hit
         norm_x, norm_y, norm_z = normal_cube_device(
             hit_x,
             hit_y,
@@ -334,7 +368,6 @@ def trace_ray_device(
         shape_col_g = cube_colors[min_idx, 1]
         shape_col_b = cube_colors[min_idx, 2]
     elif min_shape == SHAPE_SPHERE:
-        # Sphere hit
         norm_x, norm_y, norm_z = normal_sphere_device(
             hit_x,
             hit_y,
@@ -346,8 +379,7 @@ def trace_ray_device(
         shape_col_r = sphere_colors[min_idx, 0]
         shape_col_g = sphere_colors[min_idx, 1]
         shape_col_b = sphere_colors[min_idx, 2]
-    else:
-        # Cylinder hit
+    elif min_shape == SHAPE_CYLINDER:
         norm_x, norm_y, norm_z = normal_cylinder_device(
             hit_x,
             hit_y,
@@ -361,6 +393,13 @@ def trace_ray_device(
         shape_col_r = cylinder_colors[min_idx, 0]
         shape_col_g = cylinder_colors[min_idx, 1]
         shape_col_b = cylinder_colors[min_idx, 2]
+    else:
+        # Egg shape
+        norm_x, norm_y, norm_z = normal_egg_implicit(hit_x, hit_y, hit_z)
+        shape_col_r = EGG_R
+        shape_col_g = EGG_G
+        shape_col_b = EGG_B
+
     # Compute vector from hit point back toward the camera (to_origin = -direction, since direction is normalized)
     to_orig_x = -dir_x
     to_orig_y = -dir_y
