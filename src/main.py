@@ -14,7 +14,7 @@ def main():
 
     # img size parameters
     img_ratio = 2000 / 1380
-    img_height = 1380 // 2
+    img_height = 1380 // 20
     img_width = int(img_height * img_ratio)
     img_ratio = img_width / img_height
     img = np.zeros((img_height, img_width, 3), dtype=np.float32)

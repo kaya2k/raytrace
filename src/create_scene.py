@@ -7,8 +7,8 @@ def create_scene():
 
     # add cornell box
     COLOR_WHITE = (1, 1, 1)
-    COLOR_RED = (130 / 255, 0, 0)
-    COLOR_YELLOW = (217 / 255, 170 / 255, 0)
+    COLOR_RED = (0.52, 0.14, 0.14)
+    COLOR_YELLOW = (0.80, 0.49, 0.15)
     wall_B = Cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)
     wall_L = Cube(center=(-152.5, 0, 0), size=(5, 200, 205), color=COLOR_YELLOW)
     wall_R = Cube(center=(152.5, 0, 0), size=(5, 200, 205), color=COLOR_RED)
