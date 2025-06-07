@@ -6,7 +6,6 @@ from .sphere import intersect_sphere_device, normal_sphere_device
 from .cylinder import intersect_cylinder_device, normal_cylinder_device
 from .utils import dot3, normalize3
 
-# Constants for the area light and Phong illumination
 LIGHT_SAMPLES_PER_CELL = 4
 LIGHT_Y = 105.0
 LIGHT_LEN_X = 58.0
