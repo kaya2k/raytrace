@@ -150,44 +150,49 @@ def intersect_round_cube_device(
 
 
 @cuda.jit(device=True)
-def normal_round_cube_device(hit_x, hit_y, hit_z, center_x, center_y, center_z, rot_mat):
+def normal_round_cube_device(
+    hit_x, hit_y, hit_z, center_x, center_y, center_z, rot_mat
+):
     ox = hit_x - center_x
     oy = hit_y - center_y
     oz = hit_z - center_z
-    lx = rot_mat[0,0]*ox + rot_mat[0,1]*oy + rot_mat[0,2]*oz
-    ly = rot_mat[1,0]*ox + rot_mat[1,1]*oy + rot_mat[1,2]*oz
-    lz = rot_mat[2,0]*ox + rot_mat[2,1]*oy + rot_mat[2,2]*oz
+    lx = rot_mat[0, 0] * ox + rot_mat[0, 1] * oy + rot_mat[0, 2] * oz
+    ly = rot_mat[1, 0] * ox + rot_mat[1, 1] * oy + rot_mat[1, 2] * oz
+    lz = rot_mat[2, 0] * ox + rot_mat[2, 1] * oy + rot_mat[2, 2] * oz
 
     qx = abs(lx) - CORE_EXTENT
     qy = abs(ly) - CORE_EXTENT
     qz = abs(lz) - CORE_EXTENT
-    if qx < 0.0: qx = 0.0
-    if qy < 0.0: qy = 0.0
-    if qz < 0.0: qz = 0.0
+    if qx < 0.0:
+        qx = 0.0
+    if qy < 0.0:
+        qy = 0.0
+    if qz < 0.0:
+        qz = 0.0
 
-    length = math.sqrt(qx*qx + qy*qy + qz*qz)
+    length = math.sqrt(qx * qx + qy * qy + qz * qz)
     if length > EPSILON:
-        inv = 1.0/length
-        nx_local = qx*inv * (1.0 if lx>=0.0 else -1.0)
-        ny_local = qy*inv * (1.0 if ly>=0.0 else -1.0)
-        nz_local = qz*inv * (1.0 if lz>=0.0 else -1.0)
+        inv = 1.0 / length
+        nx_local = qx * inv * (1.0 if lx >= 0.0 else -1.0)
+        ny_local = qy * inv * (1.0 if ly >= 0.0 else -1.0)
+        nz_local = qz * inv * (1.0 if lz >= 0.0 else -1.0)
     else:
         ax = HALF_SIDE - abs(lx)
         ay = HALF_SIDE - abs(ly)
         az = HALF_SIDE - abs(lz)
         if ax < ay and ax < az:
-            nx_local, ny_local, nz_local = (1.0 if lx>=0.0 else -1.0), 0.0, 0.0
+            nx_local, ny_local, nz_local = (1.0 if lx >= 0.0 else -1.0), 0.0, 0.0
         elif ay < az:
-            nx_local, ny_local, nz_local = 0.0, (1.0 if ly>=0.0 else -1.0), 0.0
+            nx_local, ny_local, nz_local = 0.0, (1.0 if ly >= 0.0 else -1.0), 0.0
         else:
-            nx_local, ny_local, nz_local = 0.0, 0.0, (1.0 if lz>=0.0 else -1.0)
+            nx_local, ny_local, nz_local = 0.0, 0.0, (1.0 if lz >= 0.0 else -1.0)
 
-    nx = rot_mat[0,0]*nx_local + rot_mat[1,0]*ny_local + rot_mat[2,0]*nz_local
-    ny = rot_mat[0,1]*nx_local + rot_mat[1,1]*ny_local + rot_mat[2,1]*nz_local
-    nz = rot_mat[0,2]*nx_local + rot_mat[1,2]*ny_local + rot_mat[2,2]*nz_local
+    nx = rot_mat[0, 0] * nx_local + rot_mat[1, 0] * ny_local + rot_mat[2, 0] * nz_local
+    ny = rot_mat[0, 1] * nx_local + rot_mat[1, 1] * ny_local + rot_mat[2, 1] * nz_local
+    nz = rot_mat[0, 2] * nx_local + rot_mat[1, 2] * ny_local + rot_mat[2, 2] * nz_local
 
-    norm_len = math.sqrt(nx*nx + ny*ny + nz*nz)
+    norm_len = math.sqrt(nx * nx + ny * ny + nz * nz)
     if norm_len > EPSILON:
-        inv2 = 1.0/norm_len
-        return nx*inv2, ny*inv2, nz*inv2
+        inv2 = 1.0 / norm_len
+        return nx * inv2, ny * inv2, nz * inv2
     return 0.0, 1.0, 0.0
