@@ -64,6 +64,7 @@ def create_scene():
     COLOR_SPHERE = COLOR_WHITE
     COLOR_CYLINDER = (0.95, 0.95, 0.90)
     COLOR_STICKER_RED = (1.0, 0.0, 0.0)
+    COLOR_STICKER_BLACK = (0.0, 0.0, 0.0)
     # Cornell box walls (6 walls) and ceiling panels
     add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)  # back wall
     add_cube(center=(-152.5, 0, 0), size=(5, 200, 205), color=COLOR_YELLOW)  # left wall
@@ -124,11 +125,15 @@ def create_scene():
         (-70.04, -85.43, 26.12),
         (-53.07, -44.89, 9.15),
         (-46.58, -67.06, 15.65),
+        (-68.14, -47.58, 28.02),
+        (-83.82, -38.40, 12.35),
     ]
     add_sticker(center=centers[0], rotation=rotations[0], color=COLOR_STICKER_RED)
     add_sticker(center=centers[1], rotation=rotations[0], color=COLOR_STICKER_RED)
     add_sticker(center=centers[2], rotation=rotations[1], color=COLOR_STICKER_RED)
     add_sticker(center=centers[3], rotation=rotations[1], color=COLOR_STICKER_RED)
+    add_sticker(center=centers[4], rotation=rotations[0], color=COLOR_STICKER_BLACK)
+    add_sticker(center=centers[5], rotation=rotations[0], color=COLOR_STICKER_BLACK)
 
 
 if __name__ == "__main__":
