@@ -31,10 +31,13 @@ def render_kernel(
     cylinder_heights,
     cylinder_radii,
     cylinder_colors,
+    round_cube_centers,
+    round_cube_rotations,
     states,
     n_cubes,
     n_spheres,
     n_cylinders,
+    n_round_cubes,
 ):
     # 2D thread indices for pixel coordinates
     i = cuda.threadIdx.x + cuda.blockIdx.x * cuda.blockDim.x  # image column (x index)
@@ -88,11 +91,14 @@ def render_kernel(
                     cylinder_heights,
                     cylinder_radii,
                     cylinder_colors,
+                    round_cube_centers,
+                    round_cube_rotations,
                     states,
                     j * img.shape[1] + i,  # unique RNG index
                     n_cubes,
                     n_spheres,
                     n_cylinders,
+                    n_round_cubes,
                 )
                 float_r += r
                 float_g += g
@@ -134,6 +140,8 @@ def render(
     cylinder_heights,
     cylinder_radii,
     cylinder_colors,
+    round_cube_centers,
+    round_cube_rotations,
 ):
     # Allocate device memory and copy input data
     d_cube_centers = cuda.to_device(cube_centers)
@@ -148,6 +156,8 @@ def render(
     d_cylinder_heights = cuda.to_device(cylinder_heights)
     d_cylinder_radii = cuda.to_device(cylinder_radii)
     d_cylinder_colors = cuda.to_device(cylinder_colors)
+    d_round_cube_centers = cuda.to_device(round_cube_centers)
+    d_round_cube_rotations = cuda.to_device(round_cube_rotations)
     # Prepare output image array on device
     d_img = cuda.device_array((IMG_HEIGHT, IMG_WIDTH, 3), dtype=np.float32)
     # Initialize random states for each thread (for area light sampling)
@@ -174,10 +184,13 @@ def render(
         d_cylinder_heights,
         d_cylinder_radii,
         d_cylinder_colors,
+        d_round_cube_centers,
+        d_round_cube_rotations,
         states,
         cube_centers.shape[0],
         sphere_centers.shape[0],
         cylinder_centers.shape[0],
+        round_cube_centers.shape[0],
     )
     # Wait for GPU to finish
     cuda.synchronize()

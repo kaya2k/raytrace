@@ -13,7 +13,7 @@ center_z = -12.0
 
 
 @cuda.jit(device=True)
-def intersect_egg_implicit(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z) -> float:
+def intersect_egg_device(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z) -> float:
     # Transform ray origin to egg-local coordinates
     ox = origin_x - center_x
     oy = origin_y - center_y
@@ -62,7 +62,7 @@ def intersect_egg_implicit(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z) ->
 
 
 @cuda.jit(device=True)
-def normal_egg_implicit(hit_x, hit_y, hit_z):
+def normal_egg_device(hit_x, hit_y, hit_z):
     # Transform hit point to egg-local coordinates
     lx = hit_x - center_x
     ly = hit_y - center_y

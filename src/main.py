@@ -16,6 +16,8 @@ cylinder_centers = []
 cylinder_heights = []
 cylinder_radii = []
 cylinder_colors = []
+round_cube_centers = []
+round_cube_rotations = []
 
 
 def add_cube(center, size, color):
@@ -41,6 +43,11 @@ def add_cylinder(center, height, radius, color):
     cylinder_colors.append(np.array(color))
 
 
+def add_round_cube(center, rotation):
+    round_cube_centers.append(np.array(center))
+    round_cube_rotations.append(np.array(rotation))
+
+
 def create_scene():
     COLOR_WHITE = (1, 1, 1)
     COLOR_RED = (0.52, 0.14, 0.14)
@@ -60,11 +67,12 @@ def create_scene():
     # Spheres (forming a tetrahedron arrangement)
     add_sphere(center=(0, -80.0, 20), radius=20, color=COLOR_SPHERE)
     add_sphere(center=(27.18, -80.0, -9.34), radius=20, color=COLOR_SPHERE)
-    # add_sphere(center=(-11.82, -80.0, -18.21), radius=20, color=COLOR_SPHERE)
     add_sphere(center=(-11.8, -80.0, -18.2), radius=20, color=COLOR_SPHERE)
     add_sphere(center=(5.12, -47.34, -2.52), radius=20, color=COLOR_SPHERE)
     # Cylinder
     add_cylinder(center=(82, -92.5, -10), height=17, radius=24, color=COLOR_CYLINDER)
+    # Round cubes
+    add_round_cube(center=(0, -50, 0), rotation=np.eye(3))  # Center round cube
 
 
 if __name__ == "__main__":
@@ -88,6 +96,8 @@ if __name__ == "__main__":
         np.array(cylinder_heights, dtype=np.float32),
         np.array(cylinder_radii, dtype=np.float32),
         np.array(cylinder_colors, dtype=np.float32),
+        np.array(round_cube_centers, dtype=np.float32),
+        np.array(round_cube_rotations, dtype=np.float32),
     )
     end_time = time.time()
     print(f"Rendering took {end_time - start_time:.2f} seconds")
