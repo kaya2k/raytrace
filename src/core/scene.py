@@ -28,7 +28,7 @@ CELL_SIZE_Z = LIGHT_LEN_Z / LIGHT_NZ
 AMBI = 0.30
 DIFF_C = 0.80
 SPEC_C = 0.20
-SPEC_K = 32
+SPEC_K = 128
 
 
 @cuda.jit(device=True)
