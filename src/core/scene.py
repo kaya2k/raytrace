@@ -39,7 +39,7 @@ SPEC_K = 16.0
 EGG_SPEC_C = 0.30
 EGG_SPEC_K = 256
 
-MAX_DEPTH = 8
+MAX_DEPTH = 5
 REFLECT_STICKER = 0.07
 REFLECT_MIRROR = 1.0
 
@@ -470,7 +470,7 @@ def trace_ray_device(
 
         if min_shape == -1:
             if hits_light_plane(ox, oy, oz, dx, dy, dz):
-                light_power = 40.0
+                light_power = 30.0
                 color_r += throughput_r * light_power
                 color_g += throughput_g * light_power
                 color_b += throughput_b * light_power
