@@ -22,7 +22,7 @@ from .cylinder import intersect_cylinder_device, normal_cylinder_device
 from .egg import intersect_egg_device, normal_egg_device
 from .round_cube import intersect_round_cube_device, normal_round_cube_device
 from .sticker import intersect_sticker_device, normal_sticker_device
-from .utils import dot3, normalize3
+from .utils import dot3, normalize3, sample_hemisphere
 
 LIGHT_SAMPLES_PER_CELL = 4
 LIGHT_Y = 105.0
