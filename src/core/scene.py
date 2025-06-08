@@ -475,10 +475,10 @@ def trace_ray_device(
                 color_g += throughput_g * light_power
                 color_b += throughput_b * light_power
             else:
-                env_r, env_g, env_b = 1.0
-                color_r += throughput_r * env_r
-                color_g += throughput_g * env_g
-                color_b += throughput_b * env_b
+                env_light = 1.0
+                color_r += throughput_r * env_light
+                color_g += throughput_g * env_light
+                color_b += throughput_b * env_light
             break
 
         # hit point and normal
