@@ -467,10 +467,10 @@ def trace_ray_device(
                 min_idx = i
 
         if min_shape == -1:
-            # background (white)
-            color_r += attenuation * 1.0
-            color_g += attenuation * 1.0
-            color_b += attenuation * 1.0
+            if dir_z < 0.0:  # light source
+                color_r += attenuation * 1.0
+                color_g += attenuation * 1.0
+                color_b += attenuation * 1.0
             break
 
         # hit point and normal
