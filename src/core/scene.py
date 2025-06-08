@@ -39,8 +39,9 @@ SPEC_K = 16.0
 EGG_SPEC_C = 0.30
 EGG_SPEC_K = 256
 
-MAX_DEPTH = 2
-REFLECT_STICKER = 0.1
+MAX_DEPTH = 5
+REFLECT_STICKER = 0.07
+REFLECT_MIRROR = 1.0
 
 
 @cuda.jit(device=True)
@@ -581,7 +582,13 @@ def trace_ray_device(
 
         # prepare reflection
         if min_shape == SHAPE_STICKER:
-            reflect_f = REFLECT_STICKER
+            reflect_f = REFLECT_MIRROR
+        elif min_shape == SHAPE_SPHERE:
+            reflect_f = REFLECT_MIRROR
+        elif min_shape == SHAPE_CYLINDER:
+            reflect_f = REFLECT_MIRROR
+        elif min_shape == SHAPE_EGG:
+            reflect_f = REFLECT_MIRROR
         else:
             break
 
