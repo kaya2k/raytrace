@@ -563,7 +563,7 @@ def trace_ray_device(
         dz = new_dir_z
 
         if bounce >= 2:
-            rr_prob = 0.5
+            rr_prob = 0.8
             rand = cuda.random.xoroshiro128p_uniform_float32(states, idx)
             if rand > rr_prob:
                 break
