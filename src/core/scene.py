@@ -362,7 +362,7 @@ def trace_ray_device(
     dy = dir_y
     dz = dir_z
 
-    for depth in range(MAX_DEPTH):
+    for _ in range(MAX_DEPTH):
         # find closest intersection
         min_t = math.inf
         min_shape = -1
@@ -594,7 +594,6 @@ def trace_ray_device(
         else:
             break
 
-        reflect_f = EGG_SPEC_C if min_shape == SHAPE_EGG else SPEC_C
         attenuation *= reflect_f
         # reflection direction
         dot_dn = dot3(dx, dy, dz, norm_x, norm_y, norm_z)
