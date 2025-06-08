@@ -51,6 +51,6 @@ def sample_hemisphere(norm_x, norm_y, norm_z, states, idx):
 
 
 @cuda.jit(device=True)
-def gamma_correct(val, gamma=2.2):
+def gamma_correct(val):
     val = min(max(val, 0.0), 1.0)
-    return math.pow(val, 1.0 / gamma)
+    return math.pow(val, 1.0 / 2.2)
