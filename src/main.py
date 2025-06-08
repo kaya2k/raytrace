@@ -56,19 +56,19 @@ def create_scene():
     COLOR_CYLINDER = (0.95, 0.95, 0.90)
     # Cornell box walls (6 walls) and ceiling panels
     add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)  # back wall
-    # add_cube(center=(-152.5, 0, 0), size=(5, 200, 205), color=COLOR_YELLOW)  # left wall
-    # add_cube(center=(152.5, 0, 0), size=(5, 200, 205), color=COLOR_RED)  # right wall
-    # add_cube(center=(0, -102.5, 0), size=(310, 5, 205), color=COLOR_WHITE)  # floor
-    # # Ceiling split into four panels, leaving a rectangular opening (the light)
-    # add_cube(center=(0, 102.5, 62.25), size=(310, 5, 80.5), color=COLOR_WHITE)
-    # add_cube(center=(0, 102.5, -62.25), size=(310, 5, 80.5), color=COLOR_WHITE)
-    # add_cube(center=(92, 102.5, 0), size=(126, 5, 44), color=COLOR_WHITE)
-    # add_cube(center=(-92, 102.5, 0), size=(126, 5, 44), color=COLOR_WHITE)
-    # # Spheres (forming a tetrahedron arrangement)
+    add_cube(center=(-152.5, 0, 0), size=(5, 200, 205), color=COLOR_YELLOW)  # left wall
+    add_cube(center=(152.5, 0, 0), size=(5, 200, 205), color=COLOR_RED)  # right wall
+    add_cube(center=(0, -102.5, 0), size=(310, 5, 205), color=COLOR_WHITE)  # floor
+    # Ceiling split into four panels, leaving a rectangular opening (the light)
+    add_cube(center=(0, 102.5, 62.25), size=(310, 5, 80.5), color=COLOR_WHITE)
+    add_cube(center=(0, 102.5, -62.25), size=(310, 5, 80.5), color=COLOR_WHITE)
+    add_cube(center=(92, 102.5, 0), size=(126, 5, 44), color=COLOR_WHITE)
+    add_cube(center=(-92, 102.5, 0), size=(126, 5, 44), color=COLOR_WHITE)
+    # Spheres (forming a tetrahedron arrangement)
     add_sphere(center=(0, -80.0, 20), radius=20, color=COLOR_SPHERE)
-    # add_sphere(center=(27.18, -80.0, -9.34), radius=20, color=COLOR_SPHERE)
-    # add_sphere(center=(-11.8, -80.0, -18.2), radius=20, color=COLOR_SPHERE)
-    # add_sphere(center=(5.12, -47.34, -2.52), radius=20, color=COLOR_SPHERE)
+    add_sphere(center=(27.18, -80.0, -9.34), radius=20, color=COLOR_SPHERE)
+    add_sphere(center=(-11.8, -80.0, -18.2), radius=20, color=COLOR_SPHERE)
+    add_sphere(center=(5.12, -47.34, -2.52), radius=20, color=COLOR_SPHERE)
     # # Cylinder
     add_cylinder(center=(82, -92.5, -10), height=17, radius=24, color=COLOR_CYLINDER)
     # Round cubes
@@ -92,7 +92,7 @@ def create_scene():
         (-70.10, -80.84, -7.87),
     ]
 
-    for i in [2, 3]:
+    for i in [0, 1, 2, 3]:
         add_round_cube(center=centers[i], rotation=rotations[0])
 
 
