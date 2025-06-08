@@ -58,8 +58,8 @@ def intersect_sticker_device(
 
 @cuda.jit(device=True)
 def normal_sticker_device(rot_mat):
-    nx = rot_mat[0, 2]
-    ny = rot_mat[1, 2]
+    nx = rot_mat[2, 0]
+    ny = rot_mat[2, 1]
     nz = rot_mat[2, 2]
     inv = 1.0 / math.sqrt(nx * nx + ny * ny + nz * nz)
     return nx * inv, ny * inv, nz * inv
