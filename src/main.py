@@ -125,10 +125,10 @@ def create_scene():
         (-53.07, -44.89, 9.15),
         (-46.58, -67.06, 15.65),
     ]
-    add_sticker(center=centers[0], rotation=rotations[1], color=COLOR_STICKER_RED)
-    add_sticker(center=centers[1], rotation=rotations[1], color=COLOR_STICKER_RED)
-    add_sticker(center=centers[2], rotation=rotations[0], color=COLOR_STICKER_RED)
-    add_sticker(center=centers[3], rotation=rotations[0], color=COLOR_STICKER_RED)
+    add_sticker(center=centers[0], rotation=rotations[0], color=COLOR_STICKER_RED)
+    add_sticker(center=centers[1], rotation=rotations[0], color=COLOR_STICKER_RED)
+    add_sticker(center=centers[2], rotation=rotations[1], color=COLOR_STICKER_RED)
+    add_sticker(center=centers[3], rotation=rotations[1], color=COLOR_STICKER_RED)
 
 
 if __name__ == "__main__":
