@@ -61,7 +61,7 @@ def add_sticker(center, rotation, color):
 def create_scene():
     COLOR_BLACK = (0, 0, 0)
     COLOR_WHITE = (1, 1, 1)
-    COLOR_RED = (0.52, 0.14, 0.14)
+    COLOR_RED = (0.57, 0.15, 0.15)
     COLOR_YELLOW = (0.80, 0.49, 0.15)
     COLOR_SPHERE = COLOR_WHITE
     COLOR_CYLINDER = (0.95, 0.95, 0.90)
