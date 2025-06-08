@@ -8,7 +8,7 @@ b_top = 0.8 * a  # top half vertical radius
 b_bot = 1.2 * a  # bottom half vertical radius
 # Egg center in world coordinates
 center_x = 82.0
-center_y = -82.0
+center_y = 0.0 # -82.0
 center_z = -12.0
 
 
