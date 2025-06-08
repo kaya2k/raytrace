@@ -64,6 +64,7 @@ def check_in_shadow_device(
     n_cylinders,
     n_round_cubes,
 ) -> bool:
+    return True
     # Offset the start point a bit along the light ray to avoid self-hit
     origin_x = point_x + norm_x * (EPSILON * 10.0)
     origin_y = point_y + norm_y * (EPSILON * 10.0)
