@@ -7,6 +7,7 @@ from . import (
     SHAPE_CYLINDER,
     SHAPE_EGG,
     SHAPE_ROUND_CUBE,
+    SHAPE_STICKER,
     EGG_R,
     EGG_G,
     EGG_B,
@@ -19,6 +20,7 @@ from .sphere import intersect_sphere_device, normal_sphere_device
 from .cylinder import intersect_cylinder_device, normal_cylinder_device
 from .egg import intersect_egg_device, normal_egg_device
 from .round_cube import intersect_round_cube_device, normal_round_cube_device
+from .sticker import intersect_sticker_device, normal_sticker_device
 from .utils import dot3, normalize3
 
 LIGHT_SAMPLES_PER_CELL = 4
@@ -59,10 +61,14 @@ def check_in_shadow_device(
     cylinder_radii,
     round_cube_centers,
     round_cube_rotations,
+    sticker_centers,
+    sticker_rotations,
+    sticker_colors,
     n_cubes,
     n_spheres,
     n_cylinders,
     n_round_cubes,
+    n_stickers,
 ) -> bool:
     # Offset the start point a bit along the light ray to avoid self-hit
     origin_x = point_x + norm_x * (EPSILON * 100.0)
@@ -146,6 +152,22 @@ def check_in_shadow_device(
         )
         if d < light_distance:
             return True
+    # Check intersection with every sticker
+    for i in range(n_stickers):
+        d = intersect_sticker_device(
+            origin_x,
+            origin_y,
+            origin_z,
+            to_light_x,
+            to_light_y,
+            to_light_z,
+            sticker_centers[i, 0],
+            sticker_centers[i, 1],
+            sticker_centers[i, 2],
+            sticker_rotations[i],
+        )
+        if d < light_distance:
+            return True
 
     return False  # no object obstructs the light
 
@@ -173,12 +195,16 @@ def compute_color_device(
     cylinder_radii,
     round_cube_centers,
     round_cube_rotations,
+    sticker_centers,
+    sticker_rotations,
+    sticker_colors,
     states,
     idx,
     n_cubes,
     n_spheres,
     n_cylinders,
     n_round_cubes,
+    n_stickers,
     shape_type,
 ):
     # Accumulate lighting contributions
@@ -238,10 +264,14 @@ def compute_color_device(
                     cylinder_radii,
                     round_cube_centers,
                     round_cube_rotations,
+                    sticker_centers,
+                    sticker_rotations,
+                    sticker_colors,
                     n_cubes,
                     n_spheres,
                     n_cylinders,
                     n_round_cubes,
+                    n_stickers,
                 ):
                     # Light is not blocked – add diffuse and specular contribution
                     # Diffuse component (Lambertian): shape_color * (N·L) * coefficient
@@ -304,12 +334,16 @@ def trace_ray_device(
     cylinder_colors,
     round_cube_centers,
     round_cube_rotations,
+    sticker_centers,
+    sticker_rotations,
+    sticker_colors,
     states,
     idx,
     n_cubes,
     n_spheres,
     n_cylinders,
     n_round_cubes,
+    n_stickers,
 ):
     # Find the closest intersection of the ray with any object
     min_t = math.inf
@@ -403,6 +437,25 @@ def trace_ray_device(
             min_t = t
             min_idx = i
             min_shape = SHAPE_ROUND_CUBE
+    # Test all stickers
+    for i in range(n_stickers):
+        t = intersect_sticker_device(
+            origin_x,
+            origin_y,
+            origin_z,
+            dir_x,
+            dir_y,
+            dir_z,
+            sticker_centers[i, 0],
+            sticker_centers[i, 1],
+            sticker_centers[i, 2],
+            sticker_rotations[i],
+        )
+        if t < min_t:
+            min_t = t
+            min_idx = i
+            min_shape = SHAPE_STICKER
+
     # If no object was hit, return light color (white)
     if min_shape == -1:
         return 1.0, 1.0, 1.0
@@ -457,7 +510,7 @@ def trace_ray_device(
         shape_col_r = EGG_R
         shape_col_g = EGG_G
         shape_col_b = EGG_B
-    else:  # SHAPE_ROUND_CUBE
+    elif min_shape == SHAPE_ROUND_CUBE:
         norm_x, norm_y, norm_z = normal_round_cube_device(
             hit_x,
             hit_y,
@@ -470,6 +523,13 @@ def trace_ray_device(
         shape_col_r = ROUND_CUBE_R
         shape_col_g = ROUND_CUBE_G
         shape_col_b = ROUND_CUBE_B
+    else:  # SHAPE_STICKER
+        norm_x, norm_y, norm_z = normal_sticker_device(
+            sticker_rotations[min_idx],
+        )
+        shape_col_r = sticker_colors[min_idx, 0]
+        shape_col_g = sticker_colors[min_idx, 1]
+        shape_col_b = sticker_colors[min_idx, 2]
 
     # Compute vector from hit point back toward the camera (to_origin = -direction, since direction is normalized)
     to_orig_x = -dir_x
@@ -498,12 +558,16 @@ def trace_ray_device(
         cylinder_radii,
         round_cube_centers,
         round_cube_rotations,
+        sticker_centers,
+        sticker_rotations,
+        sticker_colors,
         states,
         idx,
         n_cubes,
         n_spheres,
         n_cylinders,
         n_round_cubes,
+        n_stickers,
         min_shape,
     )
     return color_r, color_g, color_b
