@@ -39,6 +39,7 @@ SPEC_K = 16.0
 EGG_SPEC_C = 0.30
 EGG_SPEC_K = 256
 
+MAX_DEPTH = 1
 
 @cuda.jit(device=True)
 def check_in_shadow_device(
@@ -345,229 +346,256 @@ def trace_ray_device(
     n_round_cubes,
     n_stickers,
 ):
-    # Find the closest intersection of the ray with any object
-    min_t = math.inf
-    min_shape = -1  # -1 means no hit
-    min_idx = -1
-    # Test all cubes
-    for i in range(n_cubes):
-        t = intersect_cube_device(
-            origin_x,
-            origin_y,
-            origin_z,
-            dir_x,
-            dir_y,
-            dir_z,
-            cube_min_bounds[i, 0],
-            cube_min_bounds[i, 1],
-            cube_min_bounds[i, 2],
-            cube_max_bounds[i, 0],
-            cube_max_bounds[i, 1],
-            cube_max_bounds[i, 2],
-        )
-        if t < min_t:
-            min_t = t
-            min_idx = i
-            min_shape = SHAPE_CUBE
-    # Test all spheres
-    for i in range(n_spheres):
-        t = intersect_sphere_device(
-            origin_x,
-            origin_y,
-            origin_z,
-            dir_x,
-            dir_y,
-            dir_z,
-            sphere_centers[i, 0],
-            sphere_centers[i, 1],
-            sphere_centers[i, 2],
-            sphere_radii[i],
-        )
-        if t < min_t:
-            min_t = t
-            min_idx = i
-            min_shape = SHAPE_SPHERE
-    # Test all cylinders
-    for i in range(n_cylinders):
-        t = intersect_cylinder_device(
-            origin_x,
-            origin_y,
-            origin_z,
-            dir_x,
-            dir_y,
-            dir_z,
-            cylinder_centers[i, 0],
-            cylinder_centers[i, 1],
-            cylinder_centers[i, 2],
-            cylinder_heights[i],
-            cylinder_radii[i],
-        )
-        if t < min_t:
-            min_t = t
-            min_idx = i
-            min_shape = SHAPE_CYLINDER
-    # Test the egg shape
-    t = intersect_egg_device(
-        origin_x,
-        origin_y,
-        origin_z,
-        dir_x,
-        dir_y,
-        dir_z,
-    )
-    if t < min_t:
-        min_t = t
-        min_idx = 0
-        min_shape = SHAPE_EGG
-    # Test all round cubes
-    for i in range(n_round_cubes):
-        t = intersect_round_cube_device(
-            origin_x,
-            origin_y,
-            origin_z,
-            dir_x,
-            dir_y,
-            dir_z,
-            round_cube_centers[i, 0],
-            round_cube_centers[i, 1],
-            round_cube_centers[i, 2],
-            round_cube_rotations[i],
-        )
-        if t < min_t:
-            min_t = t
-            min_idx = i
-            min_shape = SHAPE_ROUND_CUBE
-    # Test all stickers
-    for i in range(n_stickers):
-        t = intersect_sticker_device(
-            origin_x,
-            origin_y,
-            origin_z,
-            dir_x,
-            dir_y,
-            dir_z,
-            sticker_centers[i, 0],
-            sticker_centers[i, 1],
-            sticker_centers[i, 2],
-            sticker_rotations[i],
-        )
-        if t < min_t:
-            min_t = t
-            min_idx = i
-            min_shape = SHAPE_STICKER
+    color_r = 0.0
+    color_g = 0.0
+    color_b = 0.0
+    attenuation = 1.0
 
-    # If no object was hit, return light color (white)
-    if min_shape == -1:
-        return 1.0, 1.0, 1.0
-    # Compute the exact hit point on the surface
-    hit_x = origin_x + min_t * dir_x
-    hit_y = origin_y + min_t * dir_y
-    hit_z = origin_z + min_t * dir_z
-    # Get surface normal and object color at the hit point
-    if min_shape == SHAPE_CUBE:
-        norm_x, norm_y, norm_z = normal_cube_device(
-            hit_x,
-            hit_y,
-            hit_z,
-            cube_centers[min_idx, 0],
-            cube_centers[min_idx, 1],
-            cube_centers[min_idx, 2],
-            cube_sizes[min_idx, 0],
-            cube_sizes[min_idx, 1],
-            cube_sizes[min_idx, 2],
-        )
-        shape_col_r = cube_colors[min_idx, 0]
-        shape_col_g = cube_colors[min_idx, 1]
-        shape_col_b = cube_colors[min_idx, 2]
-    elif min_shape == SHAPE_SPHERE:
-        norm_x, norm_y, norm_z = normal_sphere_device(
-            hit_x,
-            hit_y,
-            hit_z,
-            sphere_centers[min_idx, 0],
-            sphere_centers[min_idx, 1],
-            sphere_centers[min_idx, 2],
-        )
-        shape_col_r = sphere_colors[min_idx, 0]
-        shape_col_g = sphere_colors[min_idx, 1]
-        shape_col_b = sphere_colors[min_idx, 2]
-    elif min_shape == SHAPE_CYLINDER:
-        norm_x, norm_y, norm_z = normal_cylinder_device(
-            hit_x,
-            hit_y,
-            hit_z,
-            cylinder_centers[min_idx, 0],
-            cylinder_centers[min_idx, 1],
-            cylinder_centers[min_idx, 2],
-            cylinder_heights[min_idx],
-            cylinder_radii[min_idx],
-        )
-        shape_col_r = cylinder_colors[min_idx, 0]
-        shape_col_g = cylinder_colors[min_idx, 1]
-        shape_col_b = cylinder_colors[min_idx, 2]
-    elif min_shape == SHAPE_EGG:
-        norm_x, norm_y, norm_z = normal_egg_device(hit_x, hit_y, hit_z)
-        shape_col_r = EGG_R
-        shape_col_g = EGG_G
-        shape_col_b = EGG_B
-    elif min_shape == SHAPE_ROUND_CUBE:
-        norm_x, norm_y, norm_z = normal_round_cube_device(
-            hit_x,
-            hit_y,
-            hit_z,
-            round_cube_centers[min_idx, 0],
-            round_cube_centers[min_idx, 1],
-            round_cube_centers[min_idx, 2],
-            round_cube_rotations[min_idx],
-        )
-        shape_col_r = ROUND_CUBE_R
-        shape_col_g = ROUND_CUBE_G
-        shape_col_b = ROUND_CUBE_B
-    else:  # SHAPE_STICKER
-        norm_x, norm_y, norm_z = normal_sticker_device(
-            sticker_rotations[min_idx],
-        )
-        shape_col_r = sticker_colors[min_idx, 0]
-        shape_col_g = sticker_colors[min_idx, 1]
-        shape_col_b = sticker_colors[min_idx, 2]
+    ox = origin_x
+    oy = origin_y
+    oz = origin_z
+    dx = dir_x
+    dy = dir_y
+    dz = dir_z
 
-    # Compute vector from hit point back toward the camera (to_origin = -direction, since direction is normalized)
-    to_orig_x = -dir_x
-    to_orig_y = -dir_y
-    to_orig_z = -dir_z
-    # Compute lighting at the hit point using Phong illumination model
-    color_r, color_g, color_b = compute_color_device(
-        to_orig_x,
-        to_orig_y,
-        to_orig_z,
-        hit_x,
-        hit_y,
-        hit_z,
-        norm_x,
-        norm_y,
-        norm_z,
-        shape_col_r,
-        shape_col_g,
-        shape_col_b,
-        cube_min_bounds,
-        cube_max_bounds,
-        sphere_centers,
-        sphere_radii,
-        cylinder_centers,
-        cylinder_heights,
-        cylinder_radii,
-        round_cube_centers,
-        round_cube_rotations,
-        sticker_centers,
-        sticker_rotations,
-        sticker_colors,
-        states,
-        idx,
-        n_cubes,
-        n_spheres,
-        n_cylinders,
-        n_round_cubes,
-        n_stickers,
-        min_shape,
-    )
+    for depth in range(MAX_DEPTH):
+        # find closest intersection
+        min_t = math.inf
+        min_shape = -1
+        min_idx = -1
+
+        # cubes
+        for i in range(n_cubes):
+            t = intersect_cube_device(
+                ox,
+                oy,
+                oz,
+                dx,
+                dy,
+                dz,
+                cube_min_bounds[i, 0],
+                cube_min_bounds[i, 1],
+                cube_min_bounds[i, 2],
+                cube_max_bounds[i, 0],
+                cube_max_bounds[i, 1],
+                cube_max_bounds[i, 2],
+            )
+            if t < min_t:
+                min_t = t
+                min_shape = SHAPE_CUBE
+                min_idx = i
+
+        # spheres
+        for i in range(n_spheres):
+            t = intersect_sphere_device(
+                ox,
+                oy,
+                oz,
+                dx,
+                dy,
+                dz,
+                sphere_centers[i, 0],
+                sphere_centers[i, 1],
+                sphere_centers[i, 2],
+                sphere_radii[i],
+            )
+            if t < min_t:
+                min_t = t
+                min_shape = SHAPE_SPHERE
+                min_idx = i
+
+        # cylinders
+        for i in range(n_cylinders):
+            t = intersect_cylinder_device(
+                ox,
+                oy,
+                oz,
+                dx,
+                dy,
+                dz,
+                cylinder_centers[i, 0],
+                cylinder_centers[i, 1],
+                cylinder_centers[i, 2],
+                cylinder_heights[i],
+                cylinder_radii[i],
+            )
+            if t < min_t:
+                min_t = t
+                min_shape = SHAPE_CYLINDER
+                min_idx = i
+
+        # egg
+        t = intersect_egg_device(ox, oy, oz, dx, dy, dz)
+        if t < min_t:
+            min_t = t
+            min_shape = SHAPE_EGG
+
+        # round cubes
+        for i in range(n_round_cubes):
+            t = intersect_round_cube_device(
+                ox,
+                oy,
+                oz,
+                dx,
+                dy,
+                dz,
+                round_cube_centers[i, 0],
+                round_cube_centers[i, 1],
+                round_cube_centers[i, 2],
+                round_cube_rotations[i],
+            )
+            if t < min_t:
+                min_t = t
+                min_shape = SHAPE_ROUND_CUBE
+                min_idx = i
+
+        # stickers
+        for i in range(n_stickers):
+            t = intersect_sticker_device(
+                ox,
+                oy,
+                oz,
+                dx,
+                dy,
+                dz,
+                sticker_centers[i, 0],
+                sticker_centers[i, 1],
+                sticker_centers[i, 2],
+                sticker_rotations[i],
+            )
+            if t < min_t:
+                min_t = t
+                min_shape = SHAPE_STICKER
+                min_idx = i
+
+        if min_shape == -1:
+            # background (white)
+            color_r += attenuation * 1.0
+            color_g += attenuation * 1.0
+            color_b += attenuation * 1.0
+            break
+
+        # hit point and normal
+        hit_x = ox + min_t * dx
+        hit_y = oy + min_t * dy
+        hit_z = oz + min_t * dz
+
+        if min_shape == SHAPE_CUBE:
+            norm_x, norm_y, norm_z = normal_cube_device(
+                hit_x,
+                hit_y,
+                hit_z,
+                cube_centers[min_idx, 0],
+                cube_centers[min_idx, 1],
+                cube_centers[min_idx, 2],
+                cube_sizes[min_idx, 0],
+                cube_sizes[min_idx, 1],
+                cube_sizes[min_idx, 2],
+            )
+            shape_r = cube_colors[min_idx, 0]
+            shape_g = cube_colors[min_idx, 1]
+            shape_b = cube_colors[min_idx, 2]
+        elif min_shape == SHAPE_SPHERE:
+            norm_x, norm_y, norm_z = normal_sphere_device(
+                hit_x,
+                hit_y,
+                hit_z,
+                sphere_centers[min_idx, 0],
+                sphere_centers[min_idx, 1],
+                sphere_centers[min_idx, 2],
+            )
+            shape_r = sphere_colors[min_idx, 0]
+            shape_g = sphere_colors[min_idx, 1]
+            shape_b = sphere_colors[min_idx, 2]
+        elif min_shape == SHAPE_CYLINDER:
+            norm_x, norm_y, norm_z = normal_cylinder_device(
+                hit_x,
+                hit_y,
+                hit_z,
+                cylinder_centers[min_idx, 0],
+                cylinder_centers[min_idx, 1],
+                cylinder_centers[min_idx, 2],
+                cylinder_heights[min_idx],
+                cylinder_radii[min_idx],
+            )
+            shape_r = cylinder_colors[min_idx, 0]
+            shape_g = cylinder_colors[min_idx, 1]
+            shape_b = cylinder_colors[min_idx, 2]
+        elif min_shape == SHAPE_EGG:
+            norm_x, norm_y, norm_z = normal_egg_device(hit_x, hit_y, hit_z)
+            shape_r, shape_g, shape_b = EGG_R, EGG_G, EGG_B
+        elif min_shape == SHAPE_ROUND_CUBE:
+            norm_x, norm_y, norm_z = normal_round_cube_device(
+                hit_x,
+                hit_y,
+                hit_z,
+                round_cube_centers[min_idx, 0],
+                round_cube_centers[min_idx, 1],
+                round_cube_centers[min_idx, 2],
+                round_cube_rotations[min_idx],
+            )
+            shape_r, shape_g, shape_b = ROUND_CUBE_R, ROUND_CUBE_G, ROUND_CUBE_B
+        else:
+            norm_x, norm_y, norm_z = normal_sticker_device(sticker_rotations[min_idx])
+            shape_r, shape_g, shape_b = (
+                sticker_colors[min_idx, 0],
+                sticker_colors[min_idx, 1],
+                sticker_colors[min_idx, 2],
+            )
+
+        # direct lighting
+        dr, dg, db = compute_color_device(
+            -dx,
+            -dy,
+            -dz,
+            hit_x,
+            hit_y,
+            hit_z,
+            norm_x,
+            norm_y,
+            norm_z,
+            shape_r,
+            shape_g,
+            shape_b,
+            cube_min_bounds,
+            cube_max_bounds,
+            sphere_centers,
+            sphere_radii,
+            cylinder_centers,
+            cylinder_heights,
+            cylinder_radii,
+            round_cube_centers,
+            round_cube_rotations,
+            sticker_centers,
+            sticker_rotations,
+            sticker_colors,
+            states,
+            idx,
+            n_cubes,
+            n_spheres,
+            n_cylinders,
+            n_round_cubes,
+            n_stickers,
+            min_shape,
+        )
+        color_r += attenuation * dr
+        color_g += attenuation * dg
+        color_b += attenuation * db
+
+        # prepare reflection
+        # reflectivity = EGG_SPEC_C for egg, else SPEC_C
+        reflect_f = EGG_SPEC_C if min_shape == SHAPE_EGG else SPEC_C
+        attenuation *= reflect_f
+        # reflection direction
+        dot_dn = dot3(dx, dy, dz, norm_x, norm_y, norm_z)
+        rx = dx - 2.0 * dot_dn * norm_x
+        ry = dy - 2.0 * dot_dn * norm_y
+        rz = dz - 2.0 * dot_dn * norm_z
+        # offset origin and normalize direction
+        ox = hit_x + norm_x * (EPSILON * 100.0)
+        oy = hit_y + norm_y * (EPSILON * 100.0)
+        oz = hit_z + norm_z * (EPSILON * 100.0)
+        rx, ry, rz = normalize3(rx, ry, rz)
+        dx, dy, dz = rx, ry, rz
+
     return color_r, color_g, color_b
