@@ -39,7 +39,11 @@ SPEC_K = 16.0
 EGG_SPEC_C = 0.30
 EGG_SPEC_K = 256
 
-MAX_DEPTH = 1
+MAX_DEPTH = 2
+REFLECT = 0.0
+REFLECT_EGG = 0.10
+REFLECT_STICKER = 0.50
+
 
 @cuda.jit(device=True)
 def check_in_shadow_device(
@@ -583,7 +587,13 @@ def trace_ray_device(
         color_b += attenuation * db
 
         # prepare reflection
-        # reflectivity = EGG_SPEC_C for egg, else SPEC_C
+        if min_shape == SHAPE_STICKER:
+            reflect_f = REFLECT_STICKER
+        elif min_shape == SHAPE_EGG:
+            reflect_f = REFLECT_EGG
+        else:
+            break
+
         reflect_f = EGG_SPEC_C if min_shape == SHAPE_EGG else SPEC_C
         attenuation *= reflect_f
         # reflection direction
