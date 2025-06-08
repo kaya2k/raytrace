@@ -353,7 +353,9 @@ def trace_ray_device(
     color_r = 0.0
     color_g = 0.0
     color_b = 0.0
-    attenuation = 1.0
+    throughput_r = 1.0
+    throughput_g = 1.0
+    throughput_b = 1.0
 
     ox = origin_x
     oy = origin_y
@@ -362,7 +364,7 @@ def trace_ray_device(
     dy = dir_y
     dz = dir_z
 
-    for _ in range(MAX_DEPTH):
+    for bounce in range(MAX_DEPTH):
         min_t = math.inf
         min_shape = -1
         min_idx = -1
@@ -469,9 +471,9 @@ def trace_ray_device(
 
         if min_shape == -1:
             if dz < 0.0:  # light source
-                color_r += attenuation * 1.0
-                color_g += attenuation * 1.0
-                color_b += attenuation * 1.0
+                color_r += throughput_r * 1.0
+                color_g += throughput_g * 1.0
+                color_b += throughput_b * 1.0
             break
 
         # hit point and normal
@@ -542,62 +544,26 @@ def trace_ray_device(
                 sticker_colors[min_idx, 2],
             )
 
-        # direct lighting
-        dr, dg, db = compute_color_device(
-            -dx,
-            -dy,
-            -dz,
-            hit_x,
-            hit_y,
-            hit_z,
-            norm_x,
-            norm_y,
-            norm_z,
-            shape_r,
-            shape_g,
-            shape_b,
-            cube_min_bounds,
-            cube_max_bounds,
-            sphere_centers,
-            sphere_radii,
-            cylinder_centers,
-            cylinder_heights,
-            cylinder_radii,
-            round_cube_centers,
-            round_cube_rotations,
-            sticker_centers,
-            sticker_rotations,
-            sticker_colors,
-            states,
-            idx,
-            n_cubes,
-            n_spheres,
-            n_cylinders,
-            n_round_cubes,
-            n_stickers,
-            min_shape,
+        new_dir_x, new_dir_y, new_dir_z = sample_hemisphere(
+            norm_x, norm_y, norm_z, states, idx
         )
-        color_r += attenuation * dr
-        color_g += attenuation * dg
-        color_b += attenuation * db
-
-        # prepare reflection
-        if ALL_MIRROR and min_shape in (SHAPE_STICKER, SHAPE_SPHERE, SHAPE_EGG):
-            reflect_f = REFLECT_MIRROR
-        else:
-            break
-
-        attenuation *= reflect_f
-        # reflection direction
-        dot_dn = dot3(dx, dy, dz, norm_x, norm_y, norm_z)
-        rx = dx - 2.0 * dot_dn * norm_x
-        ry = dy - 2.0 * dot_dn * norm_y
-        rz = dz - 2.0 * dot_dn * norm_z
-        # offset origin and normalize direction
+        throughput_r *= shape_r
+        throughput_g *= shape_g
+        throughput_b *= shape_b
         ox = hit_x + norm_x * (EPSILON * 100.0)
         oy = hit_y + norm_y * (EPSILON * 100.0)
         oz = hit_z + norm_z * (EPSILON * 100.0)
-        rx, ry, rz = normalize3(rx, ry, rz)
-        dx, dy, dz = rx, ry, rz
+        dx = new_dir_x
+        dy = new_dir_y
+        dz = new_dir_z
+
+        if bounce >= 2:
+            rr_prob = 0.8
+            rand = cuda.random.xoroshiro128p_uniform_float32(states, idx)
+            if rand > rr_prob:
+                break
+            throughput_r /= rr_prob
+            throughput_g /= rr_prob
+            throughput_b /= rr_prob
 
     return color_r, color_g, color_b

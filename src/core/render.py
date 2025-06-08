@@ -13,7 +13,8 @@ CAM_MAX_X = 210.0
 CAM_MAX_Y = CAM_MAX_X / IMG_RATIO
 CELL_SIZE_X = CAM_MAX_X * 2.0 / IMG_WIDTH
 CELL_SIZE_Y = CAM_MAX_Y * 2.0 / IMG_HEIGHT
-SS_DIM = 2
+SS_DIM = 1
+N_PATHTRACE = 16
 
 
 @cuda.jit
@@ -59,63 +60,63 @@ def render_kernel(
         float_g = 0.0
         float_b = 0.0
         # 2x2 supersampling loop
-        for k in range(SS_DIM):
-            for l in range(SS_DIM):
-                # Sample position within the pixel (center of each subcell)
-                x = min_x + (k + 0.5) / SS_DIM * CELL_SIZE_X
-                y = min_y + (l + 0.5) / SS_DIM * CELL_SIZE_Y
-                # Camera is looking toward (x, y, 0) from CAM_POSITION
-                dir_x = x - CAM_POSITION[0]
-                dir_y = y - CAM_POSITION[1]
-                dir_z = 0.0 - CAM_POSITION[2]
-                # Normalize the direction vector
-                length = math.sqrt(dir_x * dir_x + dir_y * dir_y + dir_z * dir_z)
-                if length > 0.0:
-                    inv_len = 1.0 / length
-                    dir_x *= inv_len
-                    dir_y *= inv_len
-                    dir_z *= inv_len
-                # Trace the ray through the scene and get the color
-                r, g, b = trace_ray_device(
-                    CAM_POSITION[0],
-                    CAM_POSITION[1],
-                    CAM_POSITION[2],
-                    dir_x,
-                    dir_y,
-                    dir_z,
-                    cube_centers,
-                    cube_sizes,
-                    cube_colors,
-                    cube_min_bounds,
-                    cube_max_bounds,
-                    sphere_centers,
-                    sphere_radii,
-                    sphere_colors,
-                    cylinder_centers,
-                    cylinder_heights,
-                    cylinder_radii,
-                    cylinder_colors,
-                    round_cube_centers,
-                    round_cube_rotations,
-                    sticker_centers,
-                    sticker_rotations,
-                    sticker_colors,
-                    states,
-                    j * img.shape[1] + i,  # unique RNG index
-                    n_cubes,
-                    n_spheres,
-                    n_cylinders,
-                    n_round_cubes,
-                    n_stickers,
-                )
-                float_r += r
-                float_g += g
-                float_b += b
+        for pt in range(N_PATHTRACE):
+            u = cuda.random.xoroshiro128p_uniform_float32(states, j * img.shape[1] + i)
+            v = cuda.random.xoroshiro128p_uniform_float32(states, j * img.shape[1] + i)
+            x = min_x + u * CELL_SIZE_X
+            y = min_y + v * CELL_SIZE_Y
+            # Camera is looking toward (x, y, 0) from CAM_POSITION
+            dir_x = x - CAM_POSITION[0]
+            dir_y = y - CAM_POSITION[1]
+            dir_z = 0.0 - CAM_POSITION[2]
+            # Normalize the direction vector
+            length = math.sqrt(dir_x * dir_x + dir_y * dir_y + dir_z * dir_z)
+            if length > 0.0:
+                inv_len = 1.0 / length
+                dir_x *= inv_len
+                dir_y *= inv_len
+                dir_z *= inv_len
+            # Trace the ray through the scene and get the color
+            r, g, b = trace_ray_device(
+                CAM_POSITION[0],
+                CAM_POSITION[1],
+                CAM_POSITION[2],
+                dir_x,
+                dir_y,
+                dir_z,
+                cube_centers,
+                cube_sizes,
+                cube_colors,
+                cube_min_bounds,
+                cube_max_bounds,
+                sphere_centers,
+                sphere_radii,
+                sphere_colors,
+                cylinder_centers,
+                cylinder_heights,
+                cylinder_radii,
+                cylinder_colors,
+                round_cube_centers,
+                round_cube_rotations,
+                sticker_centers,
+                sticker_rotations,
+                sticker_colors,
+                states,
+                j * img.shape[1] + i,  # unique RNG index
+                n_cubes,
+                n_spheres,
+                n_cylinders,
+                n_round_cubes,
+                n_stickers,
+            )
+            float_r += r
+            float_g += g
+            float_b += b
         # Average the sub-pixel samples
-        inv_ss = 1.0 / float(SS_DIM * SS_DIM)
-        float_r *= inv_ss
-        float_g *= inv_ss
-        float_b *= inv_ss
+        inv = 1.0 / float(N_PATHTRACE)
+        float_r *= inv
+        float_g *= inv
+        float_b *= inv
         # Clamp color components to [0, 1]
         if float_r < 0.0:
             float_r = 0.0
