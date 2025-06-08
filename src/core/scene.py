@@ -1,6 +1,7 @@
 import math
 from numba import cuda
 from . import (
+    ALL_MIRROR,
     EPSILON,
     SHAPE_CUBE,
     SHAPE_SPHERE,
@@ -581,11 +582,7 @@ def trace_ray_device(
         color_b += attenuation * db
 
         # prepare reflection
-        if min_shape == SHAPE_STICKER:
-            reflect_f = REFLECT_MIRROR
-        elif min_shape == SHAPE_SPHERE:
-            reflect_f = REFLECT_MIRROR
-        elif min_shape == SHAPE_EGG:
+        if ALL_MIRROR and min_shape in (SHAPE_STICKER, SHAPE_SPHERE, SHAPE_EGG):
             reflect_f = REFLECT_MIRROR
         else:
             break
