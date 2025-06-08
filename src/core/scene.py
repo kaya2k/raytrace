@@ -475,7 +475,7 @@ def trace_ray_device(
                 color_g += throughput_g * light_power
                 color_b += throughput_b * light_power
             else:
-                env_light = 0.3
+                env_light = 0.0
                 color_r += throughput_r * env_light
                 color_g += throughput_g * env_light
                 color_b += throughput_b * env_light
