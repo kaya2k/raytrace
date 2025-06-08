@@ -167,11 +167,11 @@ def normal_round_cube_device(
     dy = abs(ly) - he
     dz = abs(lz) - he
 
-    qx = dx if dx > 0.0 else 0.0
-    qy = dy if dy > 0.0 else 0.0
-    qz = dz if dz > 0.0 else 0.0
+    qx = dx if dx > EPSILON else 0.0
+    qy = dy if dy > EPSILON else 0.0
+    qz = dz if dz > EPSILON else 0.0
 
-    if True: # qx > 0.0 or qy > 0.0 or qz > 0.0:
+    if qx > 0.0 or qy > 0.0 or qz > 0.0:
         length = math.sqrt(qx * qx + qy * qy + qz * qz)
         inv = 1.0 / length
         nx_local = qx * inv * (1.0 if lx >= 0.0 else -1.0)
