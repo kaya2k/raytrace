@@ -26,7 +26,7 @@ CELL_SIZE_X = LIGHT_LEN_X / LIGHT_NX
 CELL_SIZE_Z = LIGHT_LEN_Z / LIGHT_NZ
 
 AMBI = 0.30
-DIFF_C = 0.80
+DIFF_C = 1.0 # 0.80
 SPEC_C = 0.20
 SPEC_K = 128
 
@@ -150,6 +150,7 @@ def compute_color_device(
     n_cubes,
     n_spheres,
     n_cylinders,
+    shape_type,
 ):
     # Accumulate lighting contributions
     color_r = 0.0
@@ -217,7 +218,7 @@ def compute_color_device(
                         norm_x, norm_y, norm_z, to_light_x, to_light_y, to_light_z
                     )
                     if diffuse_factor < 0.0:
-                        diffuse_factor = 0.0  # no negative light contribution
+                        diffuse_factor = 0.0
                     color_r += DIFF_C * shape_col_r * diffuse_factor
                     color_g += DIFF_C * shape_col_g * diffuse_factor
                     color_b += DIFF_C * shape_col_b * diffuse_factor
@@ -229,7 +230,6 @@ def compute_color_device(
                     half_x, half_y, half_z = normalize3(half_x, half_y, half_z)
                     # dot(N, H):
                     let = dot3(norm_x, norm_y, norm_z, half_x, half_y, half_z)
-                    # We raise max(N·H, 0) to the power SPEC_K. If N·H is negative, we treat it as 0 (no specular).
                     if let < 0.0:
                         let = 0.0
                     # Specular intensity (same for R,G,B, so we use white specular color)
@@ -435,5 +435,6 @@ def trace_ray_device(
         n_cubes,
         n_spheres,
         n_cylinders,
+        shape_type=min_shape,
     )
     return color_r, color_g, color_b
