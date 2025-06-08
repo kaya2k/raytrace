@@ -15,6 +15,14 @@ from . import (
     ROUND_CUBE_R,
     ROUND_CUBE_G,
     ROUND_CUBE_B,
+    LIGHT_SAMPLES_PER_CELL,
+    LIGHT_Y,
+    LIGHT_LEN_X,
+    LIGHT_LEN_Z,
+    LIGHT_NX,
+    LIGHT_NZ,
+    CELL_SIZE_X,
+    CELL_SIZE_Z,
 )
 from .cube import intersect_cube_device, normal_cube_device
 from .sphere import intersect_sphere_device, normal_sphere_device
@@ -22,16 +30,7 @@ from .cylinder import intersect_cylinder_device, normal_cylinder_device
 from .egg import intersect_egg_device, normal_egg_device
 from .round_cube import intersect_round_cube_device, normal_round_cube_device
 from .sticker import intersect_sticker_device, normal_sticker_device
-from .utils import dot3, normalize3, sample_hemisphere
-
-LIGHT_SAMPLES_PER_CELL = 4
-LIGHT_Y = 105.0
-LIGHT_LEN_X = 58.0
-LIGHT_LEN_Z = 44.0
-LIGHT_NX = 6
-LIGHT_NZ = int(LIGHT_NX * LIGHT_LEN_Z / LIGHT_LEN_X)
-CELL_SIZE_X = LIGHT_LEN_X / LIGHT_NX
-CELL_SIZE_Z = LIGHT_LEN_Z / LIGHT_NZ
+from .utils import dot3, hits_light_plane, normalize3, sample_hemisphere
 
 AMBI = 0.30
 DIFF_C = 0.70
@@ -470,7 +469,7 @@ def trace_ray_device(
                 min_idx = i
 
         if min_shape == -1:
-            if dz < 0.0:  # light source
+            if hits_light_plane(ox, oy, oz, dx, dy, dz):
                 light_power = 30.0
                 color_r += throughput_r * light_power
                 color_g += throughput_g * light_power

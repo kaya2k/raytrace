@@ -1,5 +1,6 @@
 import math
 from numba import cuda
+from . import LIGHT_LEN_X, LIGHT_LEN_Z, LIGHT_Y
 
 
 @cuda.jit(device=True)
@@ -48,6 +49,26 @@ def sample_hemisphere(norm_x, norm_y, norm_z, states, idx):
     new_dir_z = tang_z * local_x + norm_z * local_y + bit_z * local_z
     new_dir_x, new_dir_y, new_dir_z = normalize3(new_dir_x, new_dir_y, new_dir_z)
     return new_dir_x, new_dir_y, new_dir_z
+
+
+@cuda.jit(device=True)
+def hits_light_plane(ox, oy, oz, dx, dy, dz):
+    if dy == 0.0:
+        return False
+
+    t = (LIGHT_Y - oy) / dy
+    if t <= 0.0:
+        return False
+
+    px = ox + t * dx
+    pz = oz + t * dz
+
+    if (
+        -LIGHT_LEN_X / 2 <= px <= LIGHT_LEN_X / 2
+        and -LIGHT_LEN_Z / 2 <= pz <= LIGHT_LEN_Z / 2
+    ):
+        return True
+    return False
 
 
 @cuda.jit(device=True)
