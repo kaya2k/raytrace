@@ -471,9 +471,6 @@ def trace_ray_device(
             color_r += attenuation * 1.0
             color_g += attenuation * 1.0
             color_b += attenuation * 1.0
-            color_r = 0.0
-            color_g = 0.0
-            color_b = 0.0
             break
 
         # hit point and normal
