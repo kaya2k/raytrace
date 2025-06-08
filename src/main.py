@@ -173,6 +173,7 @@ if __name__ == "__main__":
         print("Rename existing image to avoid overwriting.")
         exit(0)
     create_scene()
+    print("Start rendering the scene...")
     start_time = time.time()
     # Convert scene lists to NumPy arrays and render the image
     img = render(
