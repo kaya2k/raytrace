@@ -177,6 +177,7 @@ def normal_round_cube_device(
         nx_local = qx * inv * (1.0 if lx >= 0.0 else -1.0)
         ny_local = qy * inv * (1.0 if ly >= 0.0 else -1.0)
         nz_local = qz * inv * (1.0 if lz >= 0.0 else -1.0)
+        return 0.0, 1.0, 0.0
     else:
         ax = abs(lx)
         ay = abs(ly)
