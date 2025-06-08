@@ -33,24 +33,24 @@ def intersect_sticker_device(
     dy = rot_mat[1, 0] * dir_x + rot_mat[1, 1] * dir_y + rot_mat[1, 2] * dir_z
     dz = rot_mat[2, 0] * dir_x + rot_mat[2, 1] * dir_y + rot_mat[2, 2] * dir_z
 
-    if abs(dz) <= EPSILON:
+    if abs(dy) <= EPSILON:
         return math.inf
 
-    t = (STICKER_OFFSET - lz) / dz
+    t = (STICKER_OFFSET - ly) / dy
     if t <= EPSILON:
         return math.inf
 
     x = lx + t * dx
-    y = ly + t * dy
+    z = lz + t * dz
 
     qx = abs(x) - STICKER_HALF_SIDE
-    qy = abs(y) - STICKER_HALF_SIDE
-    if qx <= 0.0 and qy <= 0.0:
+    qz = abs(z) - STICKER_HALF_SIDE
+    if qx <= 0.0 and qz <= 0.0:
         return t
 
     dx_ = qx if qx > 0.0 else 0.0
-    dy_ = qy if qy > 0.0 else 0.0
-    if dx_ * dx_ + dy_ * dy_ <= STICKER_ROUND_RADIUS * STICKER_ROUND_RADIUS:
+    dz_ = qz if qz > 0.0 else 0.0
+    if dx_ * dx_ + dz_ * dz_ <= STICKER_ROUND_RADIUS * STICKER_ROUND_RADIUS:
         return t
 
     return math.inf
@@ -58,8 +58,8 @@ def intersect_sticker_device(
 
 @cuda.jit(device=True)
 def normal_sticker_device(rot_mat):
-    nx = rot_mat[2, 0]
-    ny = rot_mat[2, 1]
-    nz = rot_mat[2, 2]
+    nx = rot_mat[1, 0]
+    ny = rot_mat[1, 1]
+    nz = rot_mat[1, 2]
     inv = 1.0 / math.sqrt(nx * nx + ny * ny + nz * nz)
     return nx * inv, ny * inv, nz * inv
