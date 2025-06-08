@@ -2,10 +2,10 @@ import math
 from numba import cuda
 from . import EPSILON
 
-STICKER_SIDE_LENGTH = 19.4
+STICKER_SIDE_LENGTH = 15.4
 STICKER_ROUND_RADIUS = 2.0
 STICKER_HALF_SIDE = STICKER_SIDE_LENGTH * 0.5
-STICKER_OFFSET = 0.5
+STICKER_OFFSET = 0.1
 
 
 @cuda.jit(device=True)
