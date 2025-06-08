@@ -43,6 +43,9 @@ MAX_DEPTH = 5
 REFLECT_STICKER = 0.07
 REFLECT_MIRROR = 1.0
 
+LIGHT_POWER = 30.0
+ENV_LIGHT_POWER = 0.3
+
 
 @cuda.jit(device=True)
 def check_in_shadow_device(
@@ -470,15 +473,13 @@ def trace_ray_device(
 
         if min_shape == -1:
             if hits_light_plane(ox, oy, oz, dx, dy, dz):
-                light_power = 30.0
-                color_r += throughput_r * light_power
-                color_g += throughput_g * light_power
-                color_b += throughput_b * light_power
+                color_r += throughput_r * LIGHT_POWER
+                color_g += throughput_g * LIGHT_POWER
+                color_b += throughput_b * LIGHT_POWER
             else:
-                env_light = 0.3
-                color_r += throughput_r * env_light
-                color_g += throughput_g * env_light
-                color_b += throughput_b * env_light
+                color_r += throughput_r * ENV_LIGHT_POWER
+                color_g += throughput_g * ENV_LIGHT_POWER
+                color_b += throughput_b * ENV_LIGHT_POWER
             break
 
         # hit point and normal
