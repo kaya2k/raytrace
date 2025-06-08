@@ -4,7 +4,7 @@ from . import EPSILON
 
 # Implicit egg shape parameters
 a = 22.2  # horizontal radius (X,Z)
-b_top = 1.5 * a  # top half vertical radius
+b_top = 1.45 * a  # top half vertical radius
 b_bot = 1.1 * a  # bottom half vertical radius
 # Egg center in world coordinates
 center_x = 82.0
