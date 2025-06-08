@@ -585,8 +585,6 @@ def trace_ray_device(
             reflect_f = REFLECT_MIRROR
         elif min_shape == SHAPE_SPHERE:
             reflect_f = REFLECT_MIRROR
-        elif min_shape == SHAPE_CYLINDER:
-            reflect_f = REFLECT_MIRROR
         elif min_shape == SHAPE_EGG:
             reflect_f = REFLECT_MIRROR
         else:
