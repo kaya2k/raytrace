@@ -92,7 +92,7 @@ def create_scene():
         (-70.10, -80.84, -7.87),
     ]
 
-    for i in range(4):
+    for i in [0, 1, 2]:
         add_round_cube(center=centers[i], rotation=rotations[0])
 
 
