@@ -1,4 +1,4 @@
-ALL_MIRROR = True
+ALL_MIRROR = False
 
 EPSILON = 1e-7
 
