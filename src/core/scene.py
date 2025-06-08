@@ -39,7 +39,7 @@ SPEC_K = 16.0
 EGG_SPEC_C = 0.30
 EGG_SPEC_K = 256
 
-MAX_DEPTH = 5
+MAX_DEPTH = 10
 REFLECT_STICKER = 0.07
 REFLECT_MIRROR = 1.0
 
@@ -563,7 +563,7 @@ def trace_ray_device(
         dz = new_dir_z
 
         if bounce >= 2:
-            rr_prob = 0.8
+            rr_prob = 0.5
             rand = cuda.random.xoroshiro128p_uniform_float32(states, idx)
             if rand > rr_prob:
                 break
