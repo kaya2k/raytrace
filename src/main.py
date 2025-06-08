@@ -65,7 +65,7 @@ def create_scene():
     COLOR_CYLINDER = (0.95, 0.95, 0.90)
     COLOR_STICKER_BLACK = (0.0, 0.0, 0.0)
     COLOR_STICKER_RED = (1.0, 0.0, 0.0)
-    COLOR_STICKER_GREEN = (0.0, 1.0, 0.0)
+    COLOR_STICKER_GREEN = (0.32, 0.70, 0.25)
     # Cornell box walls (6 walls) and ceiling panels
     add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)  # back wall
     add_cube(center=(-152.5, 0, 0), size=(5, 200, 205), color=COLOR_YELLOW)  # left wall
