@@ -40,9 +40,8 @@ EGG_SPEC_C = 0.30
 EGG_SPEC_K = 256
 
 MAX_DEPTH = 2
-REFLECT = 0.0
-REFLECT_EGG = 0.10
-REFLECT_STICKER = 0.50
+REFLECT_EGG = 1.0
+REFLECT_STICKER = 1.0
 
 
 @cuda.jit(device=True)
@@ -592,7 +591,8 @@ def trace_ray_device(
         elif min_shape == SHAPE_EGG:
             reflect_f = REFLECT_EGG
         else:
-            break
+            reflect_f = 1.0
+
 
         attenuation *= reflect_f
         # reflection direction
