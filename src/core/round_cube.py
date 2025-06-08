@@ -24,13 +24,12 @@ def intersect_round_cube_device(
     ox = origin_x - center_x
     oy = origin_y - center_y
     oz = origin_z - center_z
-    lx = rot_mat[0, 0] * ox + rot_mat[1, 0] * oy + rot_mat[2, 0] * oz
-    ly = rot_mat[0, 1] * ox + rot_mat[1, 1] * oy + rot_mat[2, 1] * oz
-    lz = rot_mat[0, 2] * ox + rot_mat[1, 2] * oy + rot_mat[2, 2] * oz
-
-    dx = rot_mat[0, 0] * dir_x + rot_mat[1, 0] * dir_y + rot_mat[2, 0] * dir_z
-    dy = rot_mat[0, 1] * dir_x + rot_mat[1, 1] * dir_y + rot_mat[2, 1] * dir_z
-    dz = rot_mat[0, 2] * dir_x + rot_mat[1, 2] * dir_y + rot_mat[2, 2] * dir_z
+    lx = rot_mat[0, 0] * ox + rot_mat[0, 1] * oy + rot_mat[0, 2] * oz
+    ly = rot_mat[1, 0] * ox + rot_mat[1, 1] * oy + rot_mat[1, 2] * oz
+    lz = rot_mat[2, 0] * ox + rot_mat[2, 1] * oy + rot_mat[2, 2] * oz
+    dx = rot_mat[0, 0] * dir_x + rot_mat[0, 1] * dir_y + rot_mat[0, 2] * dir_z
+    dy = rot_mat[1, 0] * dir_x + rot_mat[1, 1] * dir_y + rot_mat[1, 2] * dir_z
+    dz = rot_mat[2, 0] * dir_x + rot_mat[2, 1] * dir_y + rot_mat[2, 2] * dir_z
 
     best_t = math.inf
     r = ROUND_RADIUS
@@ -152,16 +151,15 @@ def intersect_round_cube_device(
 
 @cuda.jit(device=True)
 def normal_round_cube_device(
-    hit_x, hit_y, hit_z, center_x, center_y, center_z, rot_mat  
+    hit_x, hit_y, hit_z, center_x, center_y, center_z, rot_mat
 ):
     ox = hit_x - center_x
     oy = hit_y - center_y
     oz = hit_z - center_z
-    lx = rot_mat[0, 0] * ox + rot_mat[1, 0] * oy + rot_mat[2, 0] * oz
-    ly = rot_mat[0, 1] * ox + rot_mat[1, 1] * oy + rot_mat[2, 1] * oz
-    lz = rot_mat[0, 2] * ox + rot_mat[1, 2] * oy + rot_mat[2, 2] * oz
+    lx = rot_mat[0, 0] * ox + rot_mat[0, 1] * oy + rot_mat[0, 2] * oz
+    ly = rot_mat[1, 0] * ox + rot_mat[1, 1] * oy + rot_mat[1, 2] * oz
+    lz = rot_mat[2, 0] * ox + rot_mat[2, 1] * oy + rot_mat[2, 2] * oz
 
-    r = ROUND_RADIUS
     he = CORE_EXTENT
 
     dx = abs(lx) - he
@@ -189,9 +187,9 @@ def normal_round_cube_device(
         else:
             nx_local, ny_local, nz_local = 0.0, 0.0, (1.0 if lz >= 0 else -1.0)
 
-    nx = rot_mat[0, 0] * nx_local + rot_mat[0, 1] * ny_local + rot_mat[0, 2] * nz_local
-    ny = rot_mat[1, 0] * nx_local + rot_mat[1, 1] * ny_local + rot_mat[1, 2] * nz_local
-    nz = rot_mat[2, 0] * nx_local + rot_mat[2, 1] * ny_local + rot_mat[2, 2] * nz_local
+    nx = rot_mat[0, 0] * nx_local + rot_mat[1, 0] * ny_local + rot_mat[2, 0] * nz_local
+    ny = rot_mat[0, 1] * nx_local + rot_mat[1, 1] * ny_local + rot_mat[2, 1] * nz_local
+    nz = rot_mat[0, 2] * nx_local + rot_mat[1, 2] * ny_local + rot_mat[2, 2] * nz_local
 
     norm_len = math.sqrt(nx * nx + ny * ny + nz * nz)
     if norm_len > EPSILON:
