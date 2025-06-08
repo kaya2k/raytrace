@@ -48,3 +48,9 @@ def sample_hemisphere(norm_x, norm_y, norm_z, states, idx):
     new_dir_z = tang_z * local_x + norm_z * local_y + bit_z * local_z
     new_dir_x, new_dir_y, new_dir_z = normalize3(new_dir_x, new_dir_y, new_dir_z)
     return new_dir_x, new_dir_y, new_dir_z
+
+
+@cuda.jit(device=True)
+def gamma_correct(val, gamma=2.2):
+    val = min(max(val, 0.0), 1.0)
+    return math.pow(val, 1.0 / gamma)

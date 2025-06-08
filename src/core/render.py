@@ -3,6 +3,7 @@ import numpy as np
 from numba import cuda
 from numba.cuda.random import create_xoroshiro128p_states
 from .scene import trace_ray_device
+from .utils import gamma_correct
 
 IMG_RATIO = 2000 / 1380
 IMG_WIDTH = 2000
@@ -117,23 +118,14 @@ def render_kernel(
         float_r *= inv
         float_g *= inv
         float_b *= inv
-        # Clamp color components to [0, 1]
-        if float_r < 0.0:
-            float_r = 0.0
-        if float_r > 1.0:
-            float_r = 1.0
-        if float_g < 0.0:
-            float_g = 0.0
-        if float_g > 1.0:
-            float_g = 1.0
-        if float_b < 0.0:
-            float_b = 0.0
-        if float_b > 1.0:
-            float_b = 1.0
-        # Write the color to the output image (as float32)
-        img[out_y, i, 0] = float_r
-        img[out_y, i, 1] = float_g
-        img[out_y, i, 2] = float_b
+
+        float_r = gamma_correct(float_r)
+        float_g = gamma_correct(float_g)
+        float_b = gamma_correct(float_b)
+
+        img[out_y, i, 0] = min(1.0, max(0.0, float_r))
+        img[out_y, i, 1] = min(1.0, max(0.0, float_g))
+        img[out_y, i, 2] = min(1.0, max(0.0, float_b))
 
 
 def render(
