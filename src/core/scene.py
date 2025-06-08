@@ -471,7 +471,7 @@ def trace_ray_device(
 
         if min_shape == -1:
             if dz < 0.0:  # light source
-                light_power = 5.0
+                light_power = 30.0
                 color_r += throughput_r * light_power
                 color_g += throughput_g * light_power
                 color_b += throughput_b * light_power
