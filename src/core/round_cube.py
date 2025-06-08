@@ -156,22 +156,23 @@ def normal_round_cube_device(
     ox = hit_x - center_x
     oy = hit_y - center_y
     oz = hit_z - center_z
+
     lx = rot_mat[0, 0] * ox + rot_mat[0, 1] * oy + rot_mat[0, 2] * oz
     ly = rot_mat[1, 0] * ox + rot_mat[1, 1] * oy + rot_mat[1, 2] * oz
     lz = rot_mat[2, 0] * ox + rot_mat[2, 1] * oy + rot_mat[2, 2] * oz
 
-    qx = abs(lx) - CORE_EXTENT
-    qy = abs(ly) - CORE_EXTENT
-    qz = abs(lz) - CORE_EXTENT
-    if qx < 0.0:
-        qx = 0.0
-    if qy < 0.0:
-        qy = 0.0
-    if qz < 0.0:
-        qz = 0.0
+    he = CORE_EXTENT
 
-    length = math.sqrt(qx * qx + qy * qy + qz * qz)
-    if length > EPSILON:
+    dx = abs(lx) - he
+    dy = abs(ly) - he
+    dz = abs(lz) - he
+
+    qx = dx if dx > 0.0 else 0.0
+    qy = dy if dy > 0.0 else 0.0
+    qz = dz if dz > 0.0 else 0.0
+
+    if qx > 0.0 or qy > 0.0 or qz > 0.0:
+        length = math.sqrt(qx * qx + qy * qy + qz * qz)
         inv = 1.0 / length
         nx_local = qx * inv * (1.0 if lx >= 0.0 else -1.0)
         ny_local = qy * inv * (1.0 if ly >= 0.0 else -1.0)
@@ -180,9 +181,9 @@ def normal_round_cube_device(
         ax = abs(lx)
         ay = abs(ly)
         az = abs(lz)
-        if ax > ay and ax > az:
+        if ax >= ay and ax >= az:
             nx_local, ny_local, nz_local = (1.0 if lx >= 0.0 else -1.0), 0.0, 0.0
-        elif ay > az:
+        elif ay >= az:
             nx_local, ny_local, nz_local = 0.0, (1.0 if ly >= 0.0 else -1.0), 0.0
         else:
             nx_local, ny_local, nz_local = 0.0, 0.0, (1.0 if lz >= 0.0 else -1.0)
@@ -192,7 +193,5 @@ def normal_round_cube_device(
     nz = rot_mat[0, 2] * nx_local + rot_mat[1, 2] * ny_local + rot_mat[2, 2] * nz_local
 
     norm_len = math.sqrt(nx * nx + ny * ny + nz * nz)
-    if norm_len > EPSILON:
-        inv2 = 1.0 / norm_len
-        return nx * inv2, ny * inv2, nz * inv2
-    return 0.0, 1.0, 0.0
+    inv2 = 1.0 / norm_len
+    return nx * inv2, ny * inv2, nz * inv2
