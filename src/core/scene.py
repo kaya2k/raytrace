@@ -145,7 +145,6 @@ def compute_color_device(
     cylinder_centers,
     cylinder_heights,
     cylinder_radii,
-    cylinder_colors,
     states,
     idx,
     n_cubes,
@@ -168,7 +167,7 @@ def compute_color_device(
                 # Random offsets (u,v) in [0,1) for this cell
                 u = cuda.random.xoroshiro128p_uniform_float32(states, idx)
                 v = cuda.random.xoroshiro128p_uniform_float32(states, idx)
-                # Sample point on the light area (rectangle centered at origin in X-Z plane at Y = LIGHT_Y)
+                # Sample point on the light area
                 sample_x = x_min + u * CELL_SIZE_X
                 sample_z = z_min + v * CELL_SIZE_Z
                 # Vector from hit point to the light sample
@@ -431,7 +430,6 @@ def trace_ray_device(
         cylinder_centers,
         cylinder_heights,
         cylinder_radii,
-        cylinder_colors,
         states,
         idx,
         n_cubes,
