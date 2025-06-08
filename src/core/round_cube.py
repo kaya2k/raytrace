@@ -166,6 +166,7 @@ def normal_round_cube_device(
     dx = abs(lx) - he
     dy = abs(ly) - he
     dz = abs(lz) - he
+    print(f"dx: {dx}, dy: {dy}, dz: {dz}")
 
     qx = dx if dx > 0.0 else 0.0
     qy = dy if dy > 0.0 else 0.0
@@ -188,9 +189,10 @@ def normal_round_cube_device(
         else:
             nx_local, ny_local, nz_local = 0.0, 0.0, (1.0 if lz >= 0.0 else -1.0)
 
-    nx = rot_mat[0, 0] * nx_local + rot_mat[0, 1] * ny_local + rot_mat[0, 2] * nz_local
-    ny = rot_mat[1, 0] * nx_local + rot_mat[1, 1] * ny_local + rot_mat[1, 2] * nz_local
-    nz = rot_mat[2, 0] * nx_local + rot_mat[2, 1] * ny_local + rot_mat[2, 2] * nz_local
+    print(f"nx_local: {nx_local}, ny_local: {ny_local}, nz_local: {nz_local}")
+    nx = rot_mat[0, 0] * nx_local + rot_mat[1, 0] * ny_local + rot_mat[2, 0] * nz_local
+    ny = rot_mat[0, 1] * nx_local + rot_mat[1, 1] * ny_local + rot_mat[2, 1] * nz_local
+    nz = rot_mat[0, 2] * nx_local + rot_mat[1, 2] * ny_local + rot_mat[2, 2] * nz_local
 
     norm_len = math.sqrt(nx * nx + ny * ny + nz * nz)
     inv2 = 1.0 / norm_len
