@@ -4,7 +4,8 @@ from . import EPSILON
 
 SIDE_LENGTH = 24.0
 ROUND_RADIUS = 2.0
-HALF_EXTENT = SIDE_LENGTH * 0.5 - ROUND_RADIUS
+HALF_SIDE = SIDE_LENGTH * 0.5
+CORE_EXTENT = HALF_SIDE - ROUND_RADIUS
 
 
 @cuda.jit(device=True)
@@ -23,7 +24,6 @@ def intersect_round_cube_device(
     ox = origin_x - center_x
     oy = origin_y - center_y
     oz = origin_z - center_z
-
     lx = rot_mat[0, 0] * ox + rot_mat[1, 0] * oy + rot_mat[2, 0] * oz
     ly = rot_mat[0, 1] * ox + rot_mat[1, 1] * oy + rot_mat[2, 1] * oz
     lz = rot_mat[0, 2] * ox + rot_mat[1, 2] * oy + rot_mat[2, 2] * oz
@@ -34,39 +34,39 @@ def intersect_round_cube_device(
 
     best_t = math.inf
     r = ROUND_RADIUS
-    hx = HALF_EXTENT
-    hy = HALF_EXTENT
-    hz = HALF_EXTENT
+    he = CORE_EXTENT
 
     if abs(dx) > EPSILON:
-        for side in (hx, -hx):
+        for side in (HALF_SIDE, -HALF_SIDE):
             t = (side - lx) / dx
             if t > EPSILON:
                 y_hit = ly + t * dy
                 z_hit = lz + t * dz
-                if abs(y_hit) <= hy and abs(z_hit) <= hz and t < best_t:
+                if abs(y_hit) <= he and abs(z_hit) <= he and t < best_t:
                     best_t = t
+
     if abs(dy) > EPSILON:
-        for side in (hy, -hy):
+        for side in (HALF_SIDE, -HALF_SIDE):
             t = (side - ly) / dy
             if t > EPSILON:
                 x_hit = lx + t * dx
                 z_hit = lz + t * dz
-                if abs(x_hit) <= hx and abs(z_hit) <= hz and t < best_t:
+                if abs(x_hit) <= he and abs(z_hit) <= he and t < best_t:
                     best_t = t
+
     if abs(dz) > EPSILON:
-        for side in (hz, -hz):
+        for side in (HALF_SIDE, -HALF_SIDE):
             t = (side - lz) / dz
             if t > EPSILON:
                 x_hit = lx + t * dx
                 y_hit = ly + t * dy
-                if abs(x_hit) <= hx and abs(y_hit) <= hy and t < best_t:
+                if abs(x_hit) <= he and abs(y_hit) <= he and t < best_t:
                     best_t = t
 
     A = dy * dy + dz * dz
     if A > EPSILON:
-        for sy in (hy, -hy):
-            for sz in (hz, -hz):
+        for sy in (he, -he):
+            for sz in (he, -he):
                 oy_s = ly - sy
                 oz_s = lz - sz
                 B = 2.0 * (oy_s * dy + oz_s * dz)
@@ -74,17 +74,21 @@ def intersect_round_cube_device(
                 disc = B * B - 4.0 * A * C
                 if disc >= 0.0:
                     sd = math.sqrt(disc)
-                    for root in (-sd, sd):
-                        t_candidate = (-B + root) / (2.0 * A)
-                        if t_candidate > EPSILON:
-                            x_hit = lx + t_candidate * dx
-                            if abs(x_hit) <= hx and t_candidate < best_t:
-                                best_t = t_candidate
+                    t0 = (-B - sd) / (2.0 * A)
+                    t1 = (-B + sd) / (2.0 * A)
+                    if t0 > EPSILON:
+                        x_hit = lx + t0 * dx
+                        if abs(x_hit) <= he and t0 < best_t:
+                            best_t = t0
+                    if t1 > EPSILON:
+                        x_hit = lx + t1 * dx
+                        if abs(x_hit) <= he and t1 < best_t:
+                            best_t = t1
 
     A = dx * dx + dz * dz
     if A > EPSILON:
-        for sx in (hx, -hx):
-            for sz in (hz, -hz):
+        for sx in (he, -he):
+            for sz in (he, -he):
                 ox_s = lx - sx
                 oz_s = lz - sz
                 B = 2.0 * (ox_s * dx + oz_s * dz)
@@ -92,17 +96,21 @@ def intersect_round_cube_device(
                 disc = B * B - 4.0 * A * C
                 if disc >= 0.0:
                     sd = math.sqrt(disc)
-                    for root in (-sd, sd):
-                        t_candidate = (-B + root) / (2.0 * A)
-                        if t_candidate > EPSILON:
-                            y_hit = ly + t_candidate * dy
-                            if abs(y_hit) <= hy and t_candidate < best_t:
-                                best_t = t_candidate
+                    t0 = (-B - sd) / (2.0 * A)
+                    t1 = (-B + sd) / (2.0 * A)
+                    if t0 > EPSILON:
+                        y_hit = ly + t0 * dy
+                        if abs(y_hit) <= he and t0 < best_t:
+                            best_t = t0
+                    if t1 > EPSILON:
+                        y_hit = ly + t1 * dy
+                        if abs(y_hit) <= he and t1 < best_t:
+                            best_t = t1
 
     A = dx * dx + dy * dy
     if A > EPSILON:
-        for sx in (hx, -hx):
-            for sy in (hy, -hy):
+        for sx in (he, -he):
+            for sy in (he, -he):
                 ox_s = lx - sx
                 oy_s = ly - sy
                 B = 2.0 * (ox_s * dx + oy_s * dy)
@@ -110,16 +118,20 @@ def intersect_round_cube_device(
                 disc = B * B - 4.0 * A * C
                 if disc >= 0.0:
                     sd = math.sqrt(disc)
-                    for root in (-sd, sd):
-                        t_candidate = (-B + root) / (2.0 * A)
-                        if t_candidate > EPSILON:
-                            z_hit = lz + t_candidate * dz
-                            if abs(z_hit) <= hz and t_candidate < best_t:
-                                best_t = t_candidate
+                    t0 = (-B - sd) / (2.0 * A)
+                    t1 = (-B + sd) / (2.0 * A)
+                    if t0 > EPSILON:
+                        z_hit = lz + t0 * dz
+                        if abs(z_hit) <= he and t0 < best_t:
+                            best_t = t0
+                    if t1 > EPSILON:
+                        z_hit = lz + t1 * dz
+                        if abs(z_hit) <= he and t1 < best_t:
+                            best_t = t1
 
-    for sx in (hx, -hx):
-        for sy in (hy, -hy):
-            for sz in (hz, -hz):
+    for sx in (he, -he):
+        for sy in (he, -he):
+            for sz in (he, -he):
                 ox_s = lx - sx
                 oy_s = ly - sy
                 oz_s = lz - sz
@@ -128,17 +140,19 @@ def intersect_round_cube_device(
                 disc = B * B - C
                 if disc >= 0.0:
                     sd = math.sqrt(disc)
-                    for root in (-sd, sd):
-                        t_candidate = -B + root
-                        if t_candidate > EPSILON and t_candidate < best_t:
-                            best_t = t_candidate
+                    t0 = -B - sd
+                    t1 = -B + sd
+                    if t0 > EPSILON and t0 < best_t:
+                        best_t = t0
+                    if t1 > EPSILON and t1 < best_t:
+                        best_t = t1
 
     return best_t
 
 
 @cuda.jit(device=True)
 def normal_round_cube_device(
-    hit_x, hit_y, hit_z, center_x, center_y, center_z, rot_mat
+    hit_x, hit_y, hit_z, center_x, center_y, center_z, rot_mat  
 ):
     ox = hit_x - center_x
     oy = hit_y - center_y
@@ -147,23 +161,27 @@ def normal_round_cube_device(
     ly = rot_mat[0, 1] * ox + rot_mat[1, 1] * oy + rot_mat[2, 1] * oz
     lz = rot_mat[0, 2] * ox + rot_mat[1, 2] * oy + rot_mat[2, 2] * oz
 
-    dx = abs(lx) - HALF_EXTENT
-    dy = abs(ly) - HALF_EXTENT
-    dz = abs(lz) - HALF_EXTENT
+    r = ROUND_RADIUS
+    he = CORE_EXTENT
+
+    dx = abs(lx) - he
+    dy = abs(ly) - he
+    dz = abs(lz) - he
+
     qx = dx if dx > 0.0 else 0.0
     qy = dy if dy > 0.0 else 0.0
     qz = dz if dz > 0.0 else 0.0
-    length = math.sqrt(qx * qx + qy * qy + qz * qz)
 
+    length = math.sqrt(qx * qx + qy * qy + qz * qz)
     if length > EPSILON:
         inv = 1.0 / length
         nx_local = (qx * inv) * (1.0 if lx >= 0.0 else -1.0)
         ny_local = (qy * inv) * (1.0 if ly >= 0.0 else -1.0)
         nz_local = (qz * inv) * (1.0 if lz >= 0.0 else -1.0)
     else:
-        ax = HALF_EXTENT - abs(lx)
-        ay = HALF_EXTENT - abs(ly)
-        az = HALF_EXTENT - abs(lz)
+        ax = he - abs(lx)
+        ay = he - abs(ly)
+        az = he - abs(lz)
         if ax < ay and ax < az:
             nx_local, ny_local, nz_local = (1.0 if lx >= 0 else -1.0), 0.0, 0.0
         elif ay < az:
