@@ -72,7 +72,7 @@ def create_scene():
     # Cylinder
     add_cylinder(center=(82, -92.5, -10), height=17, radius=24, color=COLOR_CYLINDER)
     # Round cubes
-    add_round_cube(center=(0, -50, 0), rotation=np.eye(3))  # Center round cube
+    add_round_cube(center=(-68, -90.82, -8), rotation=np.eye(3))
 
 
 if __name__ == "__main__":
