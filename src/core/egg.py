@@ -3,8 +3,8 @@ from numba import cuda
 from . import EPSILON
 
 # Implicit egg shape parameters
-a = 20.0  # horizontal radius (X,Z)
-b_top = 1.6 * a  # top half vertical radius
+a = 24.0  # horizontal radius (X,Z)
+b_top = 1.5 * a  # top half vertical radius
 b_bot = 1.2 * a  # bottom half vertical radius
 # Egg center in world coordinates
 center_x = 82.0
