@@ -39,7 +39,7 @@ SPEC_K = 16.0
 EGG_SPEC_C = 0.30
 EGG_SPEC_K = 256
 
-MAX_DEPTH = 2
+MAX_DEPTH = 5
 REFLECT_EGG = 1.0
 REFLECT_STICKER = 1.0
 
@@ -362,7 +362,6 @@ def trace_ray_device(
     dz = dir_z
 
     for _ in range(MAX_DEPTH):
-        # find closest intersection
         min_t = math.inf
         min_shape = -1
         min_idx = -1
@@ -387,7 +386,6 @@ def trace_ray_device(
                 min_t = t
                 min_shape = SHAPE_CUBE
                 min_idx = i
-
         # spheres
         for i in range(n_spheres):
             t = intersect_sphere_device(
@@ -406,7 +404,6 @@ def trace_ray_device(
                 min_t = t
                 min_shape = SHAPE_SPHERE
                 min_idx = i
-
         # cylinders
         for i in range(n_cylinders):
             t = intersect_cylinder_device(
@@ -426,13 +423,11 @@ def trace_ray_device(
                 min_t = t
                 min_shape = SHAPE_CYLINDER
                 min_idx = i
-
         # egg
         t = intersect_egg_device(ox, oy, oz, dx, dy, dz)
         if t < min_t:
             min_t = t
             min_shape = SHAPE_EGG
-
         # round cubes
         for i in range(n_round_cubes):
             t = intersect_round_cube_device(
@@ -592,7 +587,6 @@ def trace_ray_device(
             reflect_f = REFLECT_EGG
         else:
             reflect_f = 1.0
-
 
         attenuation *= reflect_f
         # reflection direction
