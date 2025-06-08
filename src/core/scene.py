@@ -28,7 +28,7 @@ CELL_SIZE_Z = LIGHT_LEN_Z / LIGHT_NZ
 AMBI = 0.30
 DIFF_C = 0.80
 SPEC_C = 0.10
-SPEC_K = -4.0
+SPEC_K = 16.0
 EGG_SPEC_C = 0.30
 EGG_SPEC_K = 256
 
@@ -235,8 +235,8 @@ def compute_color_device(
                     if let < 0.0:
                         let = 0.0
                     # Specular intensity
-                    spec = (EGG_SPEC_C if shape_type == SHAPE_EGG else SPEC_C)
-                    spec *= (let**(EGG_SPEC_K if shape_type == SHAPE_EGG else SPEC_K))
+                    spec = EGG_SPEC_C if shape_type == SHAPE_EGG else SPEC_C
+                    spec *= let ** (EGG_SPEC_K if shape_type == SHAPE_EGG else SPEC_K)
                     color_r += spec
                     color_g += spec
                     color_b += spec
