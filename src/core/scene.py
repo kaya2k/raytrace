@@ -26,9 +26,11 @@ CELL_SIZE_X = LIGHT_LEN_X / LIGHT_NX
 CELL_SIZE_Z = LIGHT_LEN_Z / LIGHT_NZ
 
 AMBI = 0.30
-DIFF_C = 1.0 # 0.80
+DIFF_C = 0.80
 SPEC_C = 0.20
-SPEC_K = 128
+SPEC_K = 4
+EGG_SPEC_C = 0.50
+EGG_SPEC_K = 256
 
 
 @cuda.jit(device=True)
@@ -232,8 +234,9 @@ def compute_color_device(
                     let = dot3(norm_x, norm_y, norm_z, half_x, half_y, half_z)
                     if let < 0.0:
                         let = 0.0
-                    # Specular intensity (same for R,G,B, so we use white specular color)
-                    spec = SPEC_C * (let**SPEC_K)
+                    # Specular intensity
+                    spec = (EGG_SPEC_C if shape_type == SHAPE_EGG else SPEC_C)
+                    spec *= (let**(EGG_SPEC_K if shape_type == SHAPE_EGG else SPEC_K))
                     color_r += spec
                     color_g += spec
                     color_b += spec
@@ -435,6 +438,6 @@ def trace_ray_device(
         n_cubes,
         n_spheres,
         n_cylinders,
-        shape_type=min_shape,
+        min_shape,
     )
     return color_r, color_g, color_b
