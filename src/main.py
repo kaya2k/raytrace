@@ -63,8 +63,9 @@ def create_scene():
     COLOR_YELLOW = (0.80, 0.49, 0.15)
     COLOR_SPHERE = COLOR_WHITE
     COLOR_CYLINDER = (0.95, 0.95, 0.90)
-    COLOR_STICKER_RED = (1.0, 0.0, 0.0)
     COLOR_STICKER_BLACK = (0.0, 0.0, 0.0)
+    COLOR_STICKER_RED = (1.0, 0.0, 0.0)
+    COLOR_STICKER_GREEN = (0.0, 1.0, 0.0)
     # Cornell box walls (6 walls) and ceiling panels
     add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)  # back wall
     add_cube(center=(-152.5, 0, 0), size=(5, 200, 205), color=COLOR_YELLOW)  # left wall
@@ -119,6 +120,16 @@ def create_scene():
             [0.6532814824381882, -0.38268343236508967, 0.6532814824381883],
             [-0.2705980500730984, -0.9238795325112867, -0.27059805007309845],
         ],
+        [
+            [0.7071067811865476, 0.0, -0.7071067811865475],
+            [0.6532814824381882, 0.38268343236508967, 0.6532814824381883],
+            [0.2705980500730984, -0.9238795325112867, 0.27059805007309845],
+        ],
+        [
+            [0.27059805007309845, 0.9238795325112867, 0.2705980500730985],
+            [-0.7071067811865476, 0.0, 0.7071067811865475],
+            [0.6532814824381882, -0.3826834323650898, 0.6532814824381883],
+        ],
     ]
 
     centers = [
@@ -133,8 +144,12 @@ def create_scene():
     add_sticker(center=centers[1], rotation=rotations[0], color=COLOR_STICKER_BLACK)
     add_sticker(center=centers[2], rotation=rotations[1], color=COLOR_STICKER_RED)
     add_sticker(center=centers[3], rotation=rotations[1], color=COLOR_STICKER_RED)
-    add_sticker(center=centers[4], rotation=rotations[1], color=COLOR_STICKER_RED)
-    add_sticker(center=centers[5], rotation=rotations[1], color=COLOR_STICKER_RED)
+    add_sticker(center=centers[4], rotation=rotations[2], color=COLOR_STICKER_RED)
+    add_sticker(center=centers[5], rotation=rotations[2], color=COLOR_STICKER_RED)
+    add_sticker(center=centers[6], rotation=rotations[3], color=COLOR_STICKER_GREEN)
+    add_sticker(center=centers[7], rotation=rotations[3], color=COLOR_STICKER_GREEN)
+    add_sticker(center=centers[8], rotation=rotations[3], color=COLOR_STICKER_GREEN)
+    add_sticker(center=centers[9], rotation=rotations[3], color=COLOR_STICKER_GREEN)
 
 
 if __name__ == "__main__":
