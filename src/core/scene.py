@@ -470,12 +470,12 @@ def trace_ray_device(
 
         if min_shape == -1:
             if hits_light_plane(ox, oy, oz, dx, dy, dz):
-                light_power = 30.0
+                light_power = 1.0
                 color_r += throughput_r * light_power
                 color_g += throughput_g * light_power
                 color_b += throughput_b * light_power
             else:
-                env_r, env_g, env_b = 0.2, 0.2, 0.2
+                env_r, env_g, env_b = 1.0
                 color_r += throughput_r * env_r
                 color_g += throughput_g * env_g
                 color_b += throughput_b * env_b
