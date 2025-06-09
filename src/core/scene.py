@@ -480,11 +480,6 @@ def trace_ray_device(
                 color_g += throughput_g * ENV_LIGHT_POWER
                 color_b += throughput_b * ENV_LIGHT_POWER
             break
-        elif ALL_LIGHT and min_shape in (SHAPE_EGG, SHAPE_STICKER, SHAPE_SPHERE):
-            color_r += throughput_r * 1.0
-            color_g += throughput_g * 1.0
-            color_b += throughput_b * 1.0
-            break
 
         # hit point and normal
         hit_x = ox + min_t * dx
