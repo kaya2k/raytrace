@@ -61,13 +61,13 @@ def add_sticker(center, rotation, color):
 def create_scene():
     COLOR_BLACK = (0, 0, 0)
     COLOR_WHITE = (1, 1, 1)
-    COLOR_RED = (0.52, 0.14, 0.14)
+    COLOR_RED = (0.57, 0.15, 0.15)
     COLOR_YELLOW = (0.80, 0.49, 0.15)
     COLOR_SPHERE = COLOR_WHITE
     COLOR_CYLINDER = (0.95, 0.95, 0.90)
     COLOR_STICKER_BLACK = (0.0, 0.0, 0.0)
-    COLOR_STICKER_RED = (1.0, 0.0, 0.0)
-    COLOR_STICKER_GREEN = (0.32, 0.70, 0.25)
+    COLOR_STICKER_RED = (0.9, 0.0, 0.0)
+    COLOR_STICKER_GREEN = (0.23, 0.40, 0.18)
     COLOR_STICKER_YELLOW = (0.98, 0.91, 0.30)
 
     if ALL_MIRROR:
@@ -116,6 +116,8 @@ def create_scene():
         (-76.59, -58.67, -14.37),
         (-70.10, -80.84, -7.87),
     ]
+    diff = np.array((-6.0, -4.0, -10.0))
+    centers = [np.array(center) + diff for center in centers]
     for i in range(8):
         add_round_cube(center=centers[i], rotation=rotations[i // 4])
     # Stickers on round cubes
@@ -161,6 +163,7 @@ def create_scene():
         (-51.17, -82.74, 11.05),
         (-66.85, -91.93, -4.63),
     ]
+    centers = [np.array(center) + diff for center in centers]
 
     add_sticker(center=centers[0], rotation=rotations[0], color=COLOR_STICKER_BLACK)
     add_sticker(center=centers[1], rotation=rotations[0], color=COLOR_STICKER_BLACK)
