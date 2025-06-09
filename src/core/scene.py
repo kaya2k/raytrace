@@ -23,6 +23,7 @@ from . import (
     LIGHT_NZ,
     CELL_SIZE_X,
     CELL_SIZE_Z,
+    MAX_DEPTH,
 )
 from .cube import intersect_cube_device, normal_cube_device
 from .sphere import intersect_sphere_device, normal_sphere_device
@@ -39,7 +40,6 @@ SPEC_K = 16.0
 EGG_SPEC_C = 0.30
 EGG_SPEC_K = 256
 
-MAX_DEPTH = 10
 REFLECT_STICKER = 0.07
 REFLECT_MIRROR = 1.0
 

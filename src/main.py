@@ -116,7 +116,7 @@ def create_scene():
         (-76.59, -58.67, -14.37),
         (-70.10, -80.84, -7.87),
     ]
-    diff = np.array((-4.0, -2.0, -10.0))
+    diff = np.array((-4.0, -10.0, -10.0))
     centers = [np.array(c) + diff for c in centers]
     for i in range(8):
         add_round_cube(center=centers[i],  rotation=rotations[i // 4])

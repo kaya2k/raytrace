@@ -2,11 +2,11 @@ import math
 import numpy as np
 from numba import cuda
 from numba.cuda.random import create_xoroshiro128p_states
+from . import N_PATHTRACE, SS_DIM, IMG_WIDTH
 from .scene import trace_ray_device
 from .utils import gamma_correct
 
 IMG_RATIO = 2000 / 1380
-IMG_WIDTH = 2000
 IMG_HEIGHT = int(IMG_WIDTH / IMG_RATIO)
 IMG_RATIO = IMG_WIDTH / IMG_HEIGHT
 CAM_POSITION = np.array((0.0, 0.0, 347.5), dtype=np.float32)
@@ -14,8 +14,6 @@ CAM_MAX_X = 210.0
 CAM_MAX_Y = CAM_MAX_X / IMG_RATIO
 CELL_SIZE_X = CAM_MAX_X * 2.0 / IMG_WIDTH
 CELL_SIZE_Y = CAM_MAX_Y * 2.0 / IMG_HEIGHT
-SS_DIM = 1
-N_PATHTRACE = 8192
 
 
 @cuda.jit
