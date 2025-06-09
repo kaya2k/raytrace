@@ -33,7 +33,7 @@ from .cylinder import intersect_cylinder_device, normal_cylinder_device
 from .egg import intersect_egg_device, normal_egg_device
 from .round_cube import intersect_round_cube_device, normal_round_cube_device
 from .sticker import intersect_sticker_device, normal_sticker_device
-from .utils import dot3, hits_light_plane, normalize3, sample_hemisphere
+from .utils import dot3, hits_light_plane, normalize3, sample_reflection
 
 AMBI = 0.30
 DIFF_C = 0.70
@@ -549,8 +549,9 @@ def trace_ray_device(
                 sticker_colors[min_idx, 2],
             )
 
-        new_dir_x, new_dir_y, new_dir_z = sample_hemisphere(
-            norm_x, norm_y, norm_z, states, idx
+        new_dir_x, new_dir_y, new_dir_z = sample_reflection(
+            norm_x, norm_y, norm_z, dx, dy, dz, min_shape,
+            states, idx
         )
         throughput_r *= shape_r
         throughput_g *= shape_g
