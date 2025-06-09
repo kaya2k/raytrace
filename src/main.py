@@ -1,7 +1,7 @@
 import numpy as np
 import time
 from matplotlib import pyplot as plt
-from core import ALL_MIRROR
+from core import ALL_MIRROR, ALL_BLACK
 from core.render import render
 
 cube_centers = []
@@ -75,6 +75,12 @@ def create_scene():
         COLOR_STICKER_RED = COLOR_WHITE
         COLOR_STICKER_GREEN = COLOR_WHITE
         COLOR_STICKER_YELLOW = COLOR_WHITE
+    elif ALL_BLACK:
+        COLOR_SPHERE = COLOR_BLACK
+        COLOR_STICKER_BLACK = COLOR_BLACK
+        COLOR_STICKER_RED = COLOR_BLACK
+        COLOR_STICKER_GREEN = COLOR_BLACK
+        COLOR_STICKER_YELLOW = COLOR_BLACK
 
     # Cornell box walls (6 walls) and ceiling panels
     add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)  # back wall
@@ -91,7 +97,7 @@ def create_scene():
     add_sphere(center=(27.18, -80.0, -9.34), radius=20, color=COLOR_SPHERE)
     add_sphere(center=(-11.8, -80.0, -18.2), radius=20, color=COLOR_SPHERE)
     add_sphere(center=(5.12, -47.34, -2.52), radius=20, color=COLOR_SPHERE)
-    # # Cylinder
+    # Cylinder
     add_cylinder(center=(82, -92.5, -10), height=17, radius=24, color=COLOR_CYLINDER)
     # Round cubes
     rotations = [
