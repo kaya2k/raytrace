@@ -66,7 +66,7 @@ def sample_reflection(
     reflect_z = 2 * dot_nl * norm_z + in_dir_z
     reflect_x, reflect_y, reflect_z = normalize3(reflect_x, reflect_y, reflect_z)
 
-    blend = 0.8 if shape_type == SHAPE_EGG else 0.6
+    blend = 0.6 if shape_type == SHAPE_EGG else 0.4
 
     out_x = reflect_x * (1 - blend) + diff_x * blend
     out_y = reflect_y * (1 - blend) + diff_y * blend
