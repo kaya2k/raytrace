@@ -70,10 +70,10 @@ def create_scene():
     COLOR_STICKER_YELLOW = (0.98, 0.91, 0.30)
 
     if ALL_MIRROR:
-        COLOR_SPHERE = COLOR_BLACK
-        COLOR_STICKER_RED = COLOR_BLACK
-        COLOR_STICKER_GREEN = COLOR_BLACK
-        COLOR_STICKER_YELLOW = COLOR_BLACK
+        COLOR_SPHERE = COLOR_WHITE
+        COLOR_STICKER_RED = COLOR_WHITE
+        COLOR_STICKER_GREEN = COLOR_WHITE
+        COLOR_STICKER_YELLOW = COLOR_WHITE
 
     # Cornell box walls (6 walls) and ceiling panels
     add_cube(center=(0, 0, -100), size=(300, 200, 5), color=COLOR_WHITE)  # back wall

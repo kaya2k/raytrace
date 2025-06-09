@@ -21,9 +21,9 @@ EGG_G = 126 / 255
 EGG_B = 93 / 255
 
 if ALL_MIRROR:
-    EGG_R = 0
-    EGG_G = 0
-    EGG_B = 0
+    EGG_R = 1.0
+    EGG_G = 1.0
+    EGG_B = 1.0
 
 ROUND_CUBE_R = 1.0
 ROUND_CUBE_G = 1.0
