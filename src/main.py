@@ -1,7 +1,7 @@
 import numpy as np
 import time
 from matplotlib import pyplot as plt
-from core import ALL_MIRROR, ALL_BLACK, ALL_LIGHT
+from core import ALL_MIRROR, ALL_BLACK, ALL_WHITE
 from core.render import render
 
 cube_centers = []
@@ -75,7 +75,7 @@ def create_scene():
         COLOR_STICKER_RED = COLOR_WHITE
         COLOR_STICKER_GREEN = COLOR_WHITE
         COLOR_STICKER_YELLOW = COLOR_WHITE
-    elif ALL_LIGHT:
+    elif ALL_WHITE:
         # COLOR_RED = COLOR_WHITE
         # COLOR_YELLOW = COLOR_WHITE
         COLOR_SPHERE = COLOR_WHITE

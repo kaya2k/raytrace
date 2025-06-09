@@ -1,6 +1,6 @@
 ALL_MIRROR = False
 ALL_BLACK = False
-ALL_LIGHT = True
+ALL_WHITE = False
 MAX_DEPTH = 10
 N_PATHTRACE = 8192
 SS_DIM = 1
@@ -22,7 +22,7 @@ EGG_R = 213 / 255
 EGG_G = 126 / 255
 EGG_B = 93 / 255
 
-if ALL_MIRROR or ALL_LIGHT:
+if ALL_MIRROR or ALL_WHITE:
     EGG_R = 1.0
     EGG_G = 1.0
     EGG_B = 1.0
