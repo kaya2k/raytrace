@@ -118,7 +118,7 @@ def create_scene():
     diff = np.array((-6.0, -4.0, -10.0))
     centers = [np.array(c) + diff for c in centers]
     for i in range(8):
-        add_round_cube(center=centers[i],  rotation=rotations[i // 4])
+        add_round_cube(center=centers[i], rotation=rotations[i // 4])
     # Stickers on round cubes
     rotations = [
         [
