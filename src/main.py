@@ -180,7 +180,8 @@ def create_scene():
 
 
 if __name__ == "__main__":
-    IMG_PATH = "./img/fig.png"
+    IMG_PATH = "./img/img.png"
+    DATA_PATH = "./data/img.npy"
     if os.path.exists(IMG_PATH):
         print("Rename existing image to avoid overwriting.")
         exit(0)
@@ -209,7 +210,8 @@ if __name__ == "__main__":
     )
     end_time = time.time()
     print(f"Rendering took {end_time - start_time:.2f} seconds")
-    np.save('data/img.npy', img)
+    np.save(DATA_PATH, img)
+    print(f"Data saved to {DATA_PATH}")
     np.clip(img, 0, 1, out=img)
     plt.imsave(IMG_PATH, img)
     print(f"Image saved to {IMG_PATH}")
