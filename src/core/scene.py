@@ -1,7 +1,6 @@
 import math
 from numba import cuda
 from . import (
-    ALL_LIGHT,
     EPSILON,
     SHAPE_CUBE,
     SHAPE_SPHERE,
