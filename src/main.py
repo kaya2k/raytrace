@@ -182,9 +182,6 @@ def create_scene():
 if __name__ == "__main__":
     IMG_PATH = "./img/img.png"
     DATA_PATH = "./data/img.npy"
-    if os.path.exists(IMG_PATH):
-        print("Rename existing image to avoid overwriting.")
-        exit(0)
     create_scene()
     print("Start rendering the scene...")
     start_time = time.time()
