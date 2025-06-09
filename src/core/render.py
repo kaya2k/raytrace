@@ -117,13 +117,12 @@ def render_kernel(
         float_g *= inv
         float_b *= inv
 
-        # float_r = gamma_correct(float_r)
-        # float_g = gamma_correct(float_g)
-        # float_b = gamma_correct(float_b)
-
-        img[out_y, i, 0] = min(1.0, max(0.0, float_r))
-        img[out_y, i, 1] = min(1.0, max(0.0, float_g))
-        img[out_y, i, 2] = min(1.0, max(0.0, float_b))
+        # img[out_y, i, 0] = min(1.0, max(0.0, float_r))
+        # img[out_y, i, 1] = min(1.0, max(0.0, float_g))
+        # img[out_y, i, 2] = min(1.0, max(0.0, float_b))
+        img[out_y, i, 0] = float_r
+        img[out_y, i, 1] = float_g
+        img[out_y, i, 2] = float_b
 
 
 def render(

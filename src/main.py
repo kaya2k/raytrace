@@ -209,5 +209,7 @@ if __name__ == "__main__":
     )
     end_time = time.time()
     print(f"Rendering took {end_time - start_time:.2f} seconds")
+    np.save('data/img.npy', img)
+    np.clip(img, 0, 1, out=img)
     plt.imsave(IMG_PATH, img)
     print(f"Image saved to {IMG_PATH}")
