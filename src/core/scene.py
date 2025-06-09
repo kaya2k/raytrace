@@ -24,6 +24,8 @@ from . import (
     CELL_SIZE_X,
     CELL_SIZE_Z,
     MAX_DEPTH,
+    LIGHT_POWER,
+    ENV_LIGHT_POWER,
 )
 from .cube import intersect_cube_device, normal_cube_device
 from .sphere import intersect_sphere_device, normal_sphere_device
@@ -42,9 +44,6 @@ EGG_SPEC_K = 256
 
 REFLECT_STICKER = 0.07
 REFLECT_MIRROR = 1.0
-
-LIGHT_POWER = 30.0
-ENV_LIGHT_POWER = 0.3
 
 
 @cuda.jit(device=True)
