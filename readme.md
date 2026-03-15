@@ -1,3 +1,7 @@
+# raytrace
+
+A physically-based ray tracer implemented in Python.
+
 ![img](img/cropped/8192.png)
 ![img](img/cropped/BLACKBODY.png)
 ![img](img/cropped/MIRROR-ENV0.png)
