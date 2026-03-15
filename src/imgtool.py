@@ -4,7 +4,7 @@ from PIL import Image
 from matplotlib import pyplot as plt
 
 INPUT_DIR = "img"
-OUTPUT_DIR = "img_for_poster"
+OUTPUT_DIR = "img/cropped"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
