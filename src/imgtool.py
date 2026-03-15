@@ -3,8 +3,8 @@ import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
 
-INPUT_DIR = "report/img"
-OUTPUT_DIR = "report/img_for_poster"
+INPUT_DIR = "img"
+OUTPUT_DIR = "img_for_poster"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
